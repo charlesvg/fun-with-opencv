@@ -36,6 +36,7 @@ const doKmeans = (canvas, rescaledWidth) => {
         cv.KMEANS_RANDOM_CENTERS
     );
 
+    // Warning: centers are not sorted by compactness!
     return { labels: labels, centers: centers };
 }
 
@@ -44,12 +45,13 @@ const doKmeansBis = (data) => {
 
     const {labels, centers} = cv.kmeans(
         data,
-        2,
+        1,
         new cv.TermCriteria(cv.termCriteria.EPS | cv.termCriteria.MAX_ITER, 10, 0.1),
         5,
         cv.KMEANS_RANDOM_CENTERS
     );
 
+    // Warning: centers are not sorted by compactness!
     return { labels: labels, centers: centers };
 }
 
@@ -67,6 +69,7 @@ const example = () => {
 
     const {labels, centers} = doKmeans(img, 600);
 
+    // Warning: centers are not sorted by compactness!
     log('Labels', labels);
     log('Centers', centers);
 

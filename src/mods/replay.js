@@ -64,7 +64,7 @@ const replay = (infinite, directoryPath, callback) => {
 }
 
 
-const resolvedPath = path.resolve(appRootPath.path, './assets/case-2');
+const resolvedPath = path.resolve(appRootPath.path, './assets/case-1');
 replay(false, resolvedPath, (canvas) => {
 
     const calc = (town, canvas) => {
@@ -81,7 +81,8 @@ replay(false, resolvedPath, (canvas) => {
                     if (distance({x: j, y: k}, {x: x, y: y}) <= r) {
                         // ret.push({x: j, y: k})
                         const pixelValue = canvas.at(k, j);
-                        ret.push(new cv.Point3(pixelValue.x, pixelValue.y, pixelValue.z));
+                        const p = new cv.Point3(pixelValue.w, pixelValue.x, pixelValue.y);
+                        ret.push(p);
                     }
                 }
             }
@@ -91,8 +92,11 @@ replay(false, resolvedPath, (canvas) => {
         const townPoints = getPoints(town.center.x, town.center.y, town.radius, canvas);
 
         const result = doKmeansBis(townPoints).centers;
+
+        log('Result', result);
+
         const clusterOne = result[0];
-        const clusterTwo = result[1];
+        // const clusterTwo = result[1];
 
         canvas.drawRectangle(
             new cv.Point2(town.center.x, town.center.y),
@@ -102,18 +106,24 @@ replay(false, resolvedPath, (canvas) => {
             cv.LINE_AA);
 
         canvas.drawRectangle(
-            new cv.Point2(town.center.x, town.center.y + 10),
-            new cv.Point2(town.center.x + 10, town.center.y + 20),
-            new cv.Vec3(clusterTwo.x, clusterTwo.y, clusterTwo.z),
-            -1,
+            new cv.Point2(town.center.x, town.center.y),
+            new cv.Point2(town.center.x + 10 , town.center.y + 10),
+            new cv.Vec3(255,255,255),
+            1,
             cv.LINE_AA);
 
     }
 
     const foundCircles = findCirclesMeta(canvas);
     foundCircles.forEach((found) => {
-        const town = {center: {x: found.x, y: found.y}, radius: found.z};
+        const town = {center: {x: found.x, y: found.y}, radius: found.z -3};
         calc(town, canvas);
+    });
+
+    // Now draw the circle
+    foundCircles.forEach((found) => {
+        const town = {center: {x: found.x, y: found.y}, radius: found.z -3};
+        canvas.drawCircle(new cv.Point2(town.center.x, town.center.y), town.radius, new cv.Vec3(0, 255, 0), 1);
     });
 
 
