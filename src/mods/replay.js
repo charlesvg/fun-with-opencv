@@ -8,7 +8,7 @@ const fs = require('fs');
 const path = require('path');
 const appRootPath = require('app-root-path');
 const {doMask} = require('./mask');
-const {findCircles} = require('./find-circle');
+const {findCircles, findCirclesMeta} = require('./find-circle');
 
 debug.enable('bot:*');
 
@@ -64,13 +64,27 @@ const replay = (infinite, directoryPath, callback) => {
 const resolvedPath = path.resolve(appRootPath.path, './assets/case-1');
 replay(true, resolvedPath, (canvas) => {
 
-    // let min = new cv.Vec3(112, 187, 203);
-    // let max = new cv.Vec3(116, 190, 206);
-    // canvas = doMask(canvas, min, max, false);
+    const calcHistOfTown = (town) => {
+        const w = canvas.cols;
+        const h = canvas.rows;
+        const mask = new cv.Mat(h, w, cv.CV_8U);
+        mask.drawRectangle(new cv.Rect(0, 0, w, h), new cv.Vec3(0, 0, 0,), -1, cv.LINE_AA);
+        mask.drawCircle(new cv.Point2(town.center.x, town.center.y), town.radius, new cv.Vec3(255,255,255), -1, cv.LINE_AA);
+        // cv.imshow('bla', mask);
+        // cv.waitKey();
+        // calcHist(img: Mat, histAxes: HistAxes[], mask?: Mat): Mat;
+        cv.calcHist(canvas, )
+    }
 
-    // const foundCircles = findCirclesMeta(canvas);
+    const foundCircles = findCirclesMeta(canvas);
+    foundCircles.forEach((found) => {
+        const town = {center: {x: found.x, y: found.y}, radius: found.z};
+        calcHistOfTown(town);
+    });
+
+
     
-
+    log('Found', foundCircles);
 
     return canvas;
 
