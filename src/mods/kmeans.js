@@ -7,8 +7,10 @@ const path = require('path');
 const doKmeans = (canvas, rescaledWidth) => {
 
     // Rescale the image so that after changing the scale, the new width is rescaledWidth
-    let factor = rescaledWidth / canvas.cols;
-    canvas = canvas.rescale(factor);
+    if (rescaledWidth > 0) {
+        let factor = rescaledWidth / canvas.cols;
+        canvas = canvas.rescale(factor);
+    }
 
     // Kmeans accepts the pixels as an array of cv.Point3, but there doesn't seem to be a way to get that
     // unless you create it yourself... (AFAIK! all help welcome)
@@ -37,9 +39,23 @@ const doKmeans = (canvas, rescaledWidth) => {
     return { labels: labels, centers: centers };
 }
 
-
-
 exports.doKmeans = doKmeans;
+const doKmeansBis = (data) => {
+
+    const {labels, centers} = cv.kmeans(
+        data,
+        2,
+        new cv.TermCriteria(cv.termCriteria.EPS | cv.termCriteria.MAX_ITER, 10, 0.1),
+        5,
+        cv.KMEANS_RANDOM_CENTERS
+    );
+
+    return { labels: labels, centers: centers };
+}
+
+
+exports.doKmeansBis = doKmeansBis;
+
 
 const example = () => {
     debug.enable('bot:*');

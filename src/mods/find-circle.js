@@ -25,8 +25,6 @@ const findCirclesMeta = (searchMat) => {
         .cvtColor(cv.COLOR_RGBA2GRAY)
         .houghCircles(cv.HOUGH_GRADIENT, 1, 45, 20, 40, 15, 32);
 
-    log('Found circles ', foundCircles);
-
     return foundCircles;
 }
 
