@@ -5,14 +5,9 @@ const appRootPath = require('app-root-path');
 const path = require('path');
 debug.enable('bot:*');
 
-// const img = cv.imread(path.resolve(appRootPath.path, './assets/case-1/cap-1.png'));
-const img = new cv.Mat(2, 2, cv.CV_8UC3);
-img.set(0, 0, new cv.Vec3(255, 0, 0));
-img.set(0, 1, new cv.Vec3(255, 0, 0));
-img.set(1, 0, new cv.Vec3(0, 255, 0));
-img.set(1, 1, new cv.Vec3(255, 0, 0));
-
-
+let img = cv.imread(path.resolve(appRootPath.path, './assets/case-1/cap-1.png'));
+let factor = 30 / img.cols;
+img = img.rescale(factor);
 const convertImage = (image) => {
     log('Image conversion start');
     const imageBuffer = image.getData();
@@ -29,8 +24,8 @@ const convertImage = (image) => {
 
 // log(convertImage(img));
 
-// cv.imshow('test', img);
-// cv.waitKey();
+cv.imshow('test', img);
+cv.waitKey();
 
 
 const {labels, centers} = cv.kmeans(
