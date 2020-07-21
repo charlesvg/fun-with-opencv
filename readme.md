@@ -7,3 +7,6 @@
 # Why all the 'function not found?' errors?
 * See [missing functions](https://github.com/justadudewhohacks/opencv4nodejs/issues/192)
 * Use the typings in node modules to look up where a function has moved to
+
+# Color picker
+Open the [color picker](https://charlesvg.github.io/fun-with-opencv/)
