@@ -9,6 +9,7 @@ const path = require('path');
 const appRootPath = require('app-root-path');
 const {doKmeansBis} = require('./kmeans');
 const {findCircles, findCirclesMeta} = require('./find-circle');
+const {deltaRgb} = require('../util/color-diff-util');
 
 debug.enable('bot:*');
 
@@ -93,22 +94,34 @@ replay(false, resolvedPath, (canvas) => {
 
         const result = doKmeansBis(townPoints).centers;
 
-        log('Result', result);
+
 
         const clusterOne = result[0];
-        // const clusterTwo = result[1];
+        const dominantHue = rgb2hsv(clusterOne.z, clusterOne.y, clusterOne.x).h * 180;
+        const hueOfAlliedBlue = 113;
+        const delta = Math.abs(hueOfAlliedBlue - dominantHue);
+
+        if (delta < 50) {
+            canvas.drawRectangle(
+                new cv.Point2(town.center.x, town.center.y),
+                new cv.Point2(town.center.x + 10, town.center.y + 10),
+                new cv.Vec3(255, 0, 0),
+                -1,
+                cv.LINE_AA);
+        } else {
+            canvas.drawRectangle(
+                new cv.Point2(town.center.x, town.center.y),
+                new cv.Point2(town.center.x + 10, town.center.y + 10),
+                new cv.Vec3(0, 0, 255),
+                -1,
+                cv.LINE_AA);
+        }
+
 
         canvas.drawRectangle(
             new cv.Point2(town.center.x, town.center.y),
             new cv.Point2(town.center.x + 10, town.center.y + 10),
-            new cv.Vec3(clusterOne.x, clusterOne.y, clusterOne.z),
-            -1,
-            cv.LINE_AA);
-
-        canvas.drawRectangle(
-            new cv.Point2(town.center.x, town.center.y),
-            new cv.Point2(town.center.x + 10 , town.center.y + 10),
-            new cv.Vec3(255,255,255),
+            new cv.Vec3(255, 255, 255),
             1,
             cv.LINE_AA);
 
@@ -116,13 +129,13 @@ replay(false, resolvedPath, (canvas) => {
 
     const foundCircles = findCirclesMeta(canvas);
     foundCircles.forEach((found) => {
-        const town = {center: {x: found.x, y: found.y}, radius: found.z -3};
+        const town = {center: {x: found.x, y: found.y}, radius: found.z - 3};
         calc(town, canvas);
     });
 
     // Now draw the circle
     foundCircles.forEach((found) => {
-        const town = {center: {x: found.x, y: found.y}, radius: found.z -3};
+        const town = {center: {x: found.x, y: found.y}, radius: found.z - 3};
         canvas.drawCircle(new cv.Point2(town.center.x, town.center.y), town.radius, new cv.Vec3(0, 255, 0), 1);
     });
 
@@ -130,3 +143,41 @@ replay(false, resolvedPath, (canvas) => {
     return canvas;
 
 });
+
+
+const rgb2hsv =  (r, g, b)  => {
+    let rabs, gabs, babs, rr, gg, bb, h, s, v, diff, diffc, percentRoundFn;
+    rabs = r / 255;
+    gabs = g / 255;
+    babs = b / 255;
+    v = Math.max(rabs, gabs, babs),
+        diff = v - Math.min(rabs, gabs, babs);
+    diffc = c => (v - c) / 6 / diff + 1 / 2;
+    percentRoundFn = num => Math.round(num * 100) / 100;
+    if (diff == 0) {
+        h = s = 0;
+    } else {
+        s = diff / v;
+        rr = diffc(rabs);
+        gg = diffc(gabs);
+        bb = diffc(babs);
+
+        if (rabs === v) {
+            h = bb - gg;
+        } else if (gabs === v) {
+            h = (1 / 3) + rr - bb;
+        } else if (babs === v) {
+            h = (2 / 3) + gg - rr;
+        }
+        if (h < 0) {
+            h += 1;
+        }else if (h > 1) {
+            h -= 1;
+        }
+    }
+    return {
+        h: h,
+        s: s,
+        v: v
+    };
+}
