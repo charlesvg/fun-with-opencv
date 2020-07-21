@@ -61,14 +61,14 @@ const replay = (infinite, directoryPath, callback) => {
 }
 
 
-const resolvedPath = path.resolve(appRootPath.path, './assets/record/case-1');
+const resolvedPath = path.resolve(appRootPath.path, './assets/case-1');
 replay(true, resolvedPath, (canvas) => {
 
     // let min = new cv.Vec3(112, 187, 203);
     // let max = new cv.Vec3(116, 190, 206);
     // canvas = doMask(canvas, min, max, false);
 
-    const foundCircles = findCirclesMeta(canvas);
+    // const foundCircles = findCirclesMeta(canvas);
     
 
 
