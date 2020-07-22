@@ -37,22 +37,38 @@ const doKmeans = (canvas, rescaledWidth) => {
     );
 
     // Warning: centers are not sorted by compactness!
-    return { labels: labels, centers: centers };
+    return {labels: labels, centers: centers};
 }
 
 exports.doKmeans = doKmeans;
 const doKmeansBis = (data) => {
 
+    const k = 5;
     const {labels, centers} = cv.kmeans(
         data,
-        1,
+        k,
         new cv.TermCriteria(cv.termCriteria.EPS | cv.termCriteria.MAX_ITER, 10, 0.1),
         5,
         cv.KMEANS_RANDOM_CENTERS
     );
 
-    // Warning: centers are not sorted by compactness!
-    return { labels: labels, centers: centers };
+    const votes = new Array(k);
+    for (let i = 0; i < votes.length; i++) {
+        votes[i] = {idx: i, value:0};
+    }
+    for (let i = 0; i < labels.length; i++) {
+        const bin = labels[i];
+        votes[bin].value++;
+    }
+    votes.sort((a, b) => b.value - a.value);
+
+    const sortedCenters = [];
+    for (let i = 0; i < votes.length; i++) {
+        const v = votes[i];
+        sortedCenters.push(centers[v.idx]);
+    }
+
+    return {labels: labels, centers: sortedCenters};
 }
 
 

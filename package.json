@@ -8,6 +8,7 @@
     "mask": "node src/mods/mask.js",
     "template": "node src/mods/template.js",
     "picker": "node docs/picker.js",
+    "record": "node src/mods/record.js",
     "replay": "node src/mods/replay.js",
     "app": "node src/app.js"
   },

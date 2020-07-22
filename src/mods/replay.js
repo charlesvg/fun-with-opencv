@@ -65,7 +65,7 @@ const replay = (infinite, directoryPath, callback) => {
 }
 
 
-const resolvedPath = path.resolve(appRootPath.path, './assets/case-1');
+const resolvedPath = path.resolve(appRootPath.path, './assets/record/case-6');
 replay(false, resolvedPath, (canvas) => {
 
     const calc = (town, canvas) => {
@@ -83,6 +83,7 @@ replay(false, resolvedPath, (canvas) => {
                         // ret.push({x: j, y: k})
                         const pixelValue = canvas.at(k, j);
                         const p = new cv.Point3(pixelValue.w, pixelValue.x, pixelValue.y);
+                        // ret.push({x: j, y: k, p: p});
                         ret.push(p);
                     }
                 }
@@ -91,9 +92,21 @@ replay(false, resolvedPath, (canvas) => {
         }
 
         const townPoints = getPoints(town.center.x, town.center.y, town.radius, canvas);
+        //
+        // const testje = (points) => {
+        //     const size = 200;
+        //     const testMat = new cv.Mat(size, size, cv.CV_8UC3);
+        //     testMat.drawRectangle(new cv.Rect(0, 0, size, size), new cv.Vec3(0, 0, 0,), -1, cv.LINE_AA);
+        //     points.forEach(p => {
+        //         testMat.set(p.y, p.x, new cv.Vec3(p.p.x, p.p.y, p.p.z))
+        //     });
+        //
+        //     cv.imshow('bla', testMat);
+        //     cv.waitKey();
+        // }
+        // testje(townPoints);
 
         const result = doKmeansBis(townPoints).centers;
-
 
 
         const clusterOne = result[0];
@@ -108,11 +121,23 @@ replay(false, resolvedPath, (canvas) => {
                 new cv.Vec3(255, 0, 0),
                 -1,
                 cv.LINE_AA);
+            canvas.drawRectangle(
+                new cv.Point2(town.center.x, town.center.y + 10),
+                new cv.Point2(town.center.x + 10, town.center.y + 20),
+                new cv.Vec3(clusterOne.x, clusterOne.y, clusterOne.z),
+                -1,
+                cv.LINE_AA);
         } else {
             canvas.drawRectangle(
                 new cv.Point2(town.center.x, town.center.y),
                 new cv.Point2(town.center.x + 10, town.center.y + 10),
                 new cv.Vec3(0, 0, 255),
+                -1,
+                cv.LINE_AA);
+            canvas.drawRectangle(
+                new cv.Point2(town.center.x, town.center.y + 10),
+                new cv.Point2(town.center.x + 10, town.center.y + 20),
+                new cv.Vec3(clusterOne.x, clusterOne.y, clusterOne.z),
                 -1,
                 cv.LINE_AA);
         }
@@ -145,7 +170,7 @@ replay(false, resolvedPath, (canvas) => {
 });
 
 
-const rgb2hsv =  (r, g, b)  => {
+const rgb2hsv = (r, g, b) => {
     let rabs, gabs, babs, rr, gg, bb, h, s, v, diff, diffc, percentRoundFn;
     rabs = r / 255;
     gabs = g / 255;
@@ -171,7 +196,7 @@ const rgb2hsv =  (r, g, b)  => {
         }
         if (h < 0) {
             h += 1;
-        }else if (h > 1) {
+        } else if (h > 1) {
             h -= 1;
         }
     }
