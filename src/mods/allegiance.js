@@ -47,22 +47,19 @@ const getPoints = (x, y, r, canvas) => {
     return {red: red, blue: blue};
 }
 
-const detectTownAllegiance = (canvas, circles) => {
+const detectTownAllegiance = (canvas, towns) => {
     if (canvas.type !== 24) {
         log('Error, convert source to RGBA first!')
         return;
     }
 
-    let allegiances = [];
     const cropCircleBy = 3;
-    for (let i = 0; i < circles.length; i++) {
-        const c = circles[i];
-        const votes = getPoints(c.x, c.y, c.z - cropCircleBy, canvas);
-
-        const town = {center: {x: c.x, y: c.y}, radius: c.z, allied: votes.blue > votes.red};
-        allegiances.push(town);
+    for (let i = 0; i < towns.length; i++) {
+        const town = towns[i];
+        const votes = getPoints(town.center.x, town.center.y, town.radius - cropCircleBy, canvas);
+        town.allied = votes.blue > votes.red;
     }
-    return allegiances;
+    return towns;
 }
 
 exports.detectTownAllegiance = detectTownAllegiance;
@@ -73,7 +70,10 @@ if (require.main === module) {
     replay(false, resolvedPath, (canvas) => {
 
         const foundCircles = findCirclesMeta(canvas);
-        const towns = detectTownAllegiance(canvas, foundCircles);
+
+        let towns = [];
+        foundCircles.forEach(circle => towns.push({center: {x: circle.x , y: circle.y}, radius: circle.z}));
+        towns = detectTownAllegiance(canvas, towns);
 
         const blue = new cv.Vec3(255, 0, 0);
         const red = new cv.Vec3(0, 0, 255);
