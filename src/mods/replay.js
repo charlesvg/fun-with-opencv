@@ -65,10 +65,12 @@ const replay = (infinite, directoryPath, callback) => {
 }
 
 
-const resolvedPath = path.resolve(appRootPath.path, './assets/record/case-6');
+const resolvedPath = path.resolve(appRootPath.path, './assets/record/case-5');
 replay(false, resolvedPath, (canvas) => {
 
     const calc = (town, canvas) => {
+
+
         const getPoints = (x, y, r, canvas) => {
             const distance = (p1, p2) => {
                 let dx = Math.pow(p2.x - p1.x, 2);
@@ -92,6 +94,29 @@ replay(false, resolvedPath, (canvas) => {
         }
 
         const townPoints = getPoints(town.center.x, town.center.y, town.radius, canvas);
+
+        const doSmt = (points) => {
+            const hueOfAlliedBlue = 113;
+            const hueOfEnemyRed = 3;
+            let blue = 0;
+            let red = 0;
+            points.forEach(p => {
+                const hue = rgb2hsv(p.x, p.y, p.z).h * 180;
+                const deltaBlue = Math.abs(hueOfAlliedBlue - hue);
+                const deltaRed = Math.abs(hueOfEnemyRed - hue);
+                if (deltaBlue < 10) {
+                    blue++;
+                } else if (deltaRed < 10) {
+                    red++;
+                }
+            });
+            if (red > blue) {
+                return [new cv.Point3(175, 43, 30)];
+            } else {
+                return [new cv.Point3(52, 87, 203)];
+            }
+        }
+
         //
         // const testje = (points) => {
         //     const size = 200;
@@ -106,7 +131,8 @@ replay(false, resolvedPath, (canvas) => {
         // }
         // testje(townPoints);
 
-        const result = doKmeansBis(townPoints).centers;
+        // const result = doKmeansBis(townPoints).centers;
+        const result = doSmt(townPoints);
 
 
         const clusterOne = result[0];
@@ -168,6 +194,9 @@ replay(false, resolvedPath, (canvas) => {
     return canvas;
 
 });
+
+
+
 
 
 const rgb2hsv = (r, g, b) => {
