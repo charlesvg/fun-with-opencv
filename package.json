@@ -10,6 +10,7 @@
     "picker": "node docs/picker.js",
     "record": "node src/mods/record.js",
     "replay": "node src/mods/replay.js",
+    "alleg": "node src/mods/allegiance.js",
     "app": "node src/app.js"
   },
   "keywords": [],
