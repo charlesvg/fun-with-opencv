@@ -64,20 +64,25 @@ const replay = (infinite, directoryPath, callback) => {
 
 }
 
+const logd = debug('bot:deb')
+const logc = debug('bot:debc')
 
 const resolvedPath = path.resolve(appRootPath.path, './assets/record/case-5');
 replay(false, resolvedPath, (canvas) => {
 
+    log('start replay');
     const calc = (town, canvas) => {
 
 
         const getPoints = (x, y, r, canvas) => {
+            logc('start getpoints');
             const distance = (p1, p2) => {
                 let dx = Math.pow(p2.x - p1.x, 2);
                 let dy = Math.pow(p2.y - p1.y, 2);
                 return Math.sqrt(dx + dy);
             }
 
+            logc('start getpoints loop');
             let ret = [];
             for (let j = x - r; j <= x + r; j++) {
                 for (let k = y - r; k <= y + r; k++) {
@@ -90,10 +95,14 @@ replay(false, resolvedPath, (canvas) => {
                     }
                 }
             }
+            logc('end getpoints loop');
+            logc('end getpoints');
             return ret;
         }
 
+        logd('start get points');
         const townPoints = getPoints(town.center.x, town.center.y, town.radius, canvas);
+        logd('end get points');
 
         const doSmt = (points) => {
             const hueOfAlliedBlue = 113;
@@ -117,24 +126,13 @@ replay(false, resolvedPath, (canvas) => {
             }
         }
 
-        //
-        // const testje = (points) => {
-        //     const size = 200;
-        //     const testMat = new cv.Mat(size, size, cv.CV_8UC3);
-        //     testMat.drawRectangle(new cv.Rect(0, 0, size, size), new cv.Vec3(0, 0, 0,), -1, cv.LINE_AA);
-        //     points.forEach(p => {
-        //         testMat.set(p.y, p.x, new cv.Vec3(p.p.x, p.p.y, p.p.z))
-        //     });
-        //
-        //     cv.imshow('bla', testMat);
-        //     cv.waitKey();
-        // }
-        // testje(townPoints);
 
-        // const result = doKmeansBis(townPoints).centers;
+        logd('Start allegiance')
         const result = doSmt(townPoints);
+        logd('End allegiance')
 
 
+        logd('Start draw')
         const clusterOne = result[0];
         const dominantHue = rgb2hsv(clusterOne.z, clusterOne.y, clusterOne.x).h * 180;
         const hueOfAlliedBlue = 113;
@@ -176,19 +174,27 @@ replay(false, resolvedPath, (canvas) => {
             1,
             cv.LINE_AA);
 
+        logd('End draw')
     }
 
+    log('start find circles');
     const foundCircles = findCirclesMeta(canvas);
+    log('end find circles');
+    log('start calc');
     foundCircles.forEach((found) => {
         const town = {center: {x: found.x, y: found.y}, radius: found.z - 3};
         calc(town, canvas);
     });
+    log('end calc');
 
+    log('start draw');
     // Now draw the circle
     foundCircles.forEach((found) => {
         const town = {center: {x: found.x, y: found.y}, radius: found.z - 3};
         canvas.drawCircle(new cv.Point2(town.center.x, town.center.y), town.radius, new cv.Vec3(0, 255, 0), 1);
     });
+    log('end draw');
+    log('end replay');
 
 
     return canvas;
