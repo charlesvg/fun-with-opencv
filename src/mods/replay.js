@@ -147,6 +147,14 @@ if (require.main === module) {
                 p1 = new cv.Point2(rect.x + rect.width - adjust, rect.y + adjust);
                 // left bottom
                 p2 = new cv.Point2(rect.x + adjust, rect.y + rect.height - adjust);
+
+                let dx = p1.x - p2.x;
+                let dy = p1.y - p2.y;
+                let D = dx / dy;
+                for (let n=0; n < 10; n++){
+                    log('n*D', n*D, D);
+                    searchMat.drawCircle(new cv.Point2(p2.x - (n*D), p2.y - n), 1, new cv.Vec3(255, 0, 0), 2);
+                }
             }
             // searchMat.drawCircle(new cv.Point2(rect.x + 1, rect.y + 1), 1, new cv.Vec3(0, 0, 255), -1, cv.LINE_AA);
 
