@@ -121,6 +121,35 @@ if (require.main === module) {
         }
 
 
+        let contours = searchMat
+            .copy()
+            .cvtColor(cv.COLOR_BGRA2GRAY)
+            .findContours(cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+
+        contours.forEach(contour => {
+            let circle = contour.minEnclosingCircle();
+            // searchMat.drawCircle(circle.center, circle.radius, new cv.Vec3(0,255,0), 1, cv.LINE_AA);
+            // searchMat.drawRectangle(contour.boundingRect(), new cv.Vec3(0,255,0), 1, cv.LINE_AA)
+            let rect = contour.boundingRect();
+            let probe = searchMat.at(rect.y+1, rect.x+1);
+            let p1, p2;
+            if (probe.w === 0) {
+                // Top left corner is not part of the line
+                p1 = new cv.Point2(rect.x + rect.width, rect.y);
+                p2 = new cv.Point2(rect.x, rect.y + rect.height);
+            } else {
+                p1 = new cv.Point2(rect.x, rect.y);
+                p2 = new cv.Point2(rect.x+rect.width, rect.y + rect.height);
+            }
+            searchMat.drawCircle(new cv.Point2(rect.x+1, rect.y+1), 1, new cv.Vec3(0,0,255), -1, cv.LINE_AA);
+            searchMat.drawLine(p1, p2, new cv.Vec3(0,255,0),1, cv.LINE_AA);
+
+
+
+
+        });
+
+
         return searchMat;
     }
 
@@ -129,14 +158,14 @@ if (require.main === module) {
 
         canvas = findLinesMeta(canvas);
 
-        const foundCircles = findCirclesMeta(canvas);
-
-        for (let i = 0; i < foundCircles.length; i++) {
-
-            const found = foundCircles[i];
-            const town = {center: {x: found.x, y: found.y}, radius: found.z};
-            canvas.drawCircle(new cv.Point2(town.center.x, town.center.y), town.radius, new cv.Vec3(255, 0, 0), 3);
-        }
+        // const foundCircles = findCirclesMeta(canvas);
+        //
+        // for (let i = 0; i < foundCircles.length; i++) {
+        //
+        //     const found = foundCircles[i];
+        //     const town = {center: {x: found.x, y: found.y}, radius: found.z};
+        //     canvas.drawCircle(new cv.Point2(town.center.x, town.center.y), town.radius, new cv.Vec3(255, 0, 0), 3);
+        // }
 
         return canvas;
 
