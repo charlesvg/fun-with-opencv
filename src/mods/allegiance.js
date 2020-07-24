@@ -47,6 +47,21 @@ const getPoints = (x, y, r, canvas) => {
     return {red: red, blue: blue};
 }
 
+const isTownIsWithinBounds = (town, canvas) => {
+    const size = 30;
+    const leftBound = size;
+    const rightBound = canvas.cols - size;
+    const topBound = size;
+    const bottomBound = canvas.rows - size;
+    if ((leftBound < town.center.x) &&
+        (town.center.x < rightBound) &&
+        (topBound < town.center.y) &&
+        (town.center.y < bottomBound)) {
+        return true;
+    }
+    return false;
+}
+
 const detectTownAllegiance = (canvas, towns) => {
     if (canvas.type !== 24) {
         log('Error, convert source to RGBA first!')
@@ -56,8 +71,10 @@ const detectTownAllegiance = (canvas, towns) => {
     const cropCircleBy = 3;
     for (let i = 0; i < towns.length; i++) {
         const town = towns[i];
-        const votes = getPoints(town.center.x, town.center.y, town.radius - cropCircleBy, canvas);
-        town.allied = votes.blue > votes.red;
+        if (isTownIsWithinBounds(town, canvas)) {
+            const votes = getPoints(town.center.x, town.center.y, town.radius - cropCircleBy, canvas);
+            town.allied = votes.blue > votes.red;
+        }
     }
     return towns;
 }
@@ -72,7 +89,7 @@ if (require.main === module) {
         const foundCircles = findCirclesMeta(canvas);
 
         let towns = [];
-        foundCircles.forEach(circle => towns.push({center: {x: circle.x , y: circle.y}, radius: circle.z}));
+        foundCircles.forEach(circle => towns.push({center: {x: circle.x, y: circle.y}, radius: circle.z}));
         towns = detectTownAllegiance(canvas, towns);
 
         const blue = new cv.Vec3(255, 0, 0);

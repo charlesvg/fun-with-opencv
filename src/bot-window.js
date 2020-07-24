@@ -4,6 +4,7 @@ const {findWindow, setWindowBoundsIfNecessary} = require('./util/to-top');
 const {deltaRgbFromVec} = require('./util/color-diff-util');
 const {drawText} = require('./util/draw-text');
 const {doSkirm} = require('./mods/skirm');
+const {detectTownAllegiance} = require('./mods/allegiance');
 const robot = require('robotjs');
 const debug = require('debug');
 const log = debug('bot:bot')
@@ -13,8 +14,15 @@ const img2mat = (img, width, height) => {
     return new cv.Mat(img.image, height, width, cv.CV_8UC4);
 }
 
-const botMat = new cv.Mat(settings.game.window.bounds.height, settings.game.window.bounds.width, cv.CV_8UC4);
-const sourceMat = new cv.Mat(settings.game.window.bounds.height, settings.game.window.bounds.width, cv.CV_8UC4);
+const topOffset = 200;
+const rightOffset = 310;
+const leftOffset = 65;
+const bottomOffset = 150;
+
+const searchRegion = new cv.Rect(leftOffset, topOffset, 1280 - rightOffset - leftOffset, 720 - topOffset - bottomOffset);
+
+const botMat = new cv.Mat(searchRegion.height, searchRegion.width, cv.CV_8UC4);
+const sourceMat = new cv.Mat(searchRegion.height, searchRegion.width, cv.CV_8UC4);
 
 const towns = [];
 const skirmishes = [];
@@ -41,18 +49,15 @@ exports.botWindow = {
         const w = settings.game.window.bounds.width;
         const h = settings.game.window.bounds.height;
         const screenshotFromRobot = robot.screen.capture(0, 0, w, h);
-        img2mat(screenshotFromRobot, w, h).copyTo(sourceMat).copyTo(botMat);
+        img2mat(screenshotFromRobot, w, h)
+            .getRegion(searchRegion)
+            .copyTo(sourceMat)
+            .copyTo(botMat);
+
     },
     detectTowns: () => {
-        const topOffset = 200;
-        const rightOffset = 310;
-        const leftOffset = 65;
-        const bottomOffset = 150;
 
-        const searchRegion = new cv.Rect(leftOffset, topOffset, 1280 - rightOffset - leftOffset, 720 - topOffset - bottomOffset);
-        const searchMat = sourceMat.getRegion(searchRegion);
-
-        const foundCircles = searchMat
+        const foundCircles = sourceMat.copy()
             .cvtColor(cv.COLOR_RGBA2GRAY)
             .houghCircles(cv.HOUGH_GRADIENT, 1, 45, 20, 40, 25, 40);
 
@@ -62,13 +67,12 @@ exports.botWindow = {
 
         for (let i = 0; i < foundCircles.length; i++) {
             const found = foundCircles[i];
-            const town = {center: {x: found.x + leftOffset, y: found.y + topOffset}, radius: found.z};
+            const town = {center: {x: found.x, y: found.y}, radius: found.z};
             towns.push(town)
 
             botMat.drawCircle(new cv.Point2(town.center.x, town.center.y), town.radius, greenColor, 3);
         }
 
-        botMat.drawRectangle(searchRegion, yellowColor3, 1, cv.LINE_AA);
     },
     detectSkirmishes: () => {
         const contours = doSkirm(sourceMat);
@@ -78,18 +82,16 @@ exports.botWindow = {
         });
     },
     detectAllegiance: () => {
-        const theRed = new cv.Vec4(29, 42, 174, 255);
-        const theBlue = new cv.Vec4(203, 87, 52, 255);
-        towns.forEach((town) => {
-            const colorPickPosition = new cv.Point2(town.center.x - 12, town.center.y - 12);
-            const colorInCenter = sourceMat.at(colorPickPosition.y, colorPickPosition.x);
 
-            if (deltaRgbFromVec(colorInCenter, theRed) < 5) {
-                drawText(botMat, 'Enemy', greenColor, town.center.x, town.center.y + 50)
-            } else if (deltaRgbFromVec(colorInCenter, theBlue) < 5) {
+        detectTownAllegiance(botMat, towns);
+
+        towns.forEach((town) => {
+            if (town.allied === true) {
                 drawText(botMat, 'Allied', greenColor, town.center.x, town.center.y + 50)
+            } else if (town.allied === false) {
+                drawText(botMat, 'Enemy', greenColor, town.center.x, town.center.y + 50)
             } else {
-                drawText(botMat, 'Attacked', greenColor, town.center.x, town.center.y + 50)
+                drawText(botMat, 'Unknown', greenColor, town.center.x, town.center.y + 50)
             }
         });
     },
