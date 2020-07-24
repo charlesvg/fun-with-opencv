@@ -90,6 +90,7 @@ if (require.main === module) {
             .cvtColor(cv.COLOR_BGRA2GRAY)
             .findContours(cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
 
+        const lines = [];
         contours.forEach(contour => {
             let rect = contour.boundingRect();
 
@@ -133,6 +134,14 @@ if (require.main === module) {
                 p1 = new cv.Point2(rect.x + adjust, rect.y + adjust);
                 // right bottom
                 p2 = new cv.Point2(rect.x + rect.width - adjust, rect.y + rect.height - adjust);
+
+                let dx = p2.x - p1.x;
+                let dy = p2.y - p1.y;
+                let D = dx / dy;
+                for (let n=0; n < 10; n++){
+                    searchMat.drawCircle(new cv.Point2(p1.x + (n*D), p1.y + n), 1, new cv.Vec3(255, 0, 0), 2);
+                }
+
             } else {
                 // right top
                 p1 = new cv.Point2(rect.x + rect.width - adjust, rect.y + adjust);
@@ -140,26 +149,36 @@ if (require.main === module) {
                 p2 = new cv.Point2(rect.x + adjust, rect.y + rect.height - adjust);
             }
             // searchMat.drawCircle(new cv.Point2(rect.x + 1, rect.y + 1), 1, new cv.Vec3(0, 0, 255), -1, cv.LINE_AA);
+
+            lines.push({p1:p1, p2:p2});
             searchMat.drawLine(p1, p2, new cv.Vec3(0, 255, 0), 1, cv.LINE_AA);
-
-
         });
 
+        const foundCircles = findCirclesMeta(canvas);
 
-        return searchMat;
+        for (let i = 0; i < foundCircles.length; i++) {
+
+            const found = foundCircles[i];
+            const town = {center: {x: found.x, y: found.y}, radius: found.z};
+            searchMat.drawCircle(new cv.Point2(town.center.x, town.center.y), town.radius, new cv.Vec3(0, 255, 0), 1);
+        }
+
+
+        return {mat: searchMat, lines: lines};
     }
 
     const resolvedPath = path.resolve(appRootPath.path, './assets/record/case-5');
     replay(false, resolvedPath, (canvas) => {
 
-        canvas = findLinesMeta(canvas);
+        const retval = findLinesMeta(canvas);
+        canvas = retval.mat;
+
+
 
         return canvas;
 
     });
 
 }
-
-
 
 
