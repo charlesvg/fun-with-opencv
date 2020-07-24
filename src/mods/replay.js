@@ -10,6 +10,7 @@ const appRootPath = require('app-root-path');
 const {doKmeansBis} = require('./kmeans');
 const {findCircles, findCirclesMeta} = require('./find-circle');
 const {deltaRgb} = require('../util/color-diff-util');
+const {doMask} = require('./mask');
 
 debug.enable('bot:*');
 
@@ -69,6 +70,41 @@ exports.replay = replay;
 if (require.main === module) {
     const resolvedPath = path.resolve(appRootPath.path, './assets/record/case-5');
     replay(false, resolvedPath, (canvas) => {
+
+        // Multiple ATs
+        let min = new cv.Vec3(0, 0, 99);
+        let max = new cv.Vec3(0, 0, 101);
+        canvas = doMask(canvas, min, max, false);
+
+        // canvas = canvas.bitwiseNot();
+
+        canvas = canvas.threshold(
+            10,
+            255,
+            cv.THRESH_BINARY
+        );
+
+        // let kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, new cv.Size(15, 15));
+        // canvas = canvas.dilate(kernel);
+
+        canvas = canvas.cvtColor(cv.COLOR_RGBA2GRAY, 0);
+
+        let kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, new cv.Size(7, 7));
+        canvas = canvas.erode(kernel);
+
+        // canvas.canny( 50, 200, 3);
+        //
+        let lines = canvas.houghLinesP(1, Math.PI / 180, 10, 15, 20);
+
+        canvas = canvas.cvtColor(cv.COLOR_GRAY2RGBA);
+
+        log('Lines:', lines.length);
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            let startPoint = new cv.Point2(line.w, line.x);
+            let endPoint = new cv.Point2(line.y,line.z);
+            canvas.drawLine(startPoint, endPoint, new cv.Vec3(255,0,0), 1 , cv.LINE_AA);
+        }
 
         return canvas;
 
