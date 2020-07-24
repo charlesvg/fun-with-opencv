@@ -68,42 +68,74 @@ exports.replay = replay;
 
 
 if (require.main === module) {
-    const resolvedPath = path.resolve(appRootPath.path, './assets/record/case-5');
-    replay(false, resolvedPath, (canvas) => {
 
-        // Multiple ATs
-        let min = new cv.Vec3(0, 0, 99);
+    const findLinesMeta = (canvas) => {
+
+        let searchMat = canvas.copy();
+
+        let min = new cv.Vec3(0, 0, 50);
         let max = new cv.Vec3(0, 0, 101);
-        canvas = doMask(canvas, min, max, false);
+        searchMat = doMask(searchMat, min, max, false);
 
-        // canvas = canvas.bitwiseNot();
+        // searchMat = searchMat.bitwiseNot();
 
-        canvas = canvas.threshold(
-            10,
+        searchMat = searchMat.blur(new cv.Size(10,10));
+
+        searchMat = searchMat.threshold(
+            50,
             255,
             cv.THRESH_BINARY
         );
 
+
         // let kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, new cv.Size(15, 15));
-        // canvas = canvas.dilate(kernel);
+        // searchMat = searchMat.dilate(kernel);
 
-        canvas = canvas.cvtColor(cv.COLOR_RGBA2GRAY, 0);
+        searchMat = searchMat.cvtColor(cv.COLOR_RGBA2GRAY, 0);
 
-        let kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, new cv.Size(7, 7));
-        canvas = canvas.erode(kernel);
 
-        // canvas.canny( 50, 200, 3);
+
+        // let kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, new cv.Size(7, 7));
+        // searchMat = searchMat.erode(kernel);
+
+        // if (true) {
+        //     cv.imshow('bla', searchMat);
+        //     cv.waitKey();
+        // }
+
+
+        // searchMat.canny( 50, 200, 3);
         //
-        let lines = canvas.houghLinesP(1, Math.PI / 180, 10, 15, 20);
+        let lines = searchMat.houghLinesP(1, Math.PI / 180, 10, 5, 20);
 
-        canvas = canvas.cvtColor(cv.COLOR_GRAY2RGBA);
+        searchMat = searchMat.cvtColor(cv.COLOR_GRAY2RGBA)
 
         log('Lines:', lines.length);
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
             let startPoint = new cv.Point2(line.w, line.x);
-            let endPoint = new cv.Point2(line.y,line.z);
-            canvas.drawLine(startPoint, endPoint, new cv.Vec3(255,0,0), 1 , cv.LINE_AA);
+            let endPoint = new cv.Point2(line.y, line.z);
+            // searchMat.drawCircle(startPoint, 2, new cv.Vec3(0, 0, 255), -1, cv.LINE_AA);
+            // searchMat.drawCircle(endPoint, 2, new cv.Vec3(0, 0, 255), -1, cv.LINE_AA);
+            // searchMat.drawLine(startPoint, endPoint, new cv.Vec3(255, 0, 0), 1, cv.LINE_AA);
+        }
+
+
+        return searchMat;
+    }
+
+    const resolvedPath = path.resolve(appRootPath.path, './assets/record/case-5');
+    replay(false, resolvedPath, (canvas) => {
+
+        canvas = findLinesMeta(canvas);
+
+        const foundCircles = findCirclesMeta(canvas);
+
+        for (let i = 0; i < foundCircles.length; i++) {
+
+            const found = foundCircles[i];
+            const town = {center: {x: found.x, y: found.y}, radius: found.z};
+            canvas.drawCircle(new cv.Point2(town.center.x, town.center.y), town.radius, new cv.Vec3(255, 0, 0), 3);
         }
 
         return canvas;

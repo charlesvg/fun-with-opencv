@@ -14,6 +14,7 @@ const doContours = (canvas) => {
 
     contours.forEach(contour => {
         let circle = contour.minEnclosingCircle();
+        contour.
         canvas.drawCircle(circle.center, circle.radius, new cv.Vec3(0,255,0), 1, cv.LINE_AA);
     });
 
