@@ -79,7 +79,7 @@ if (require.main === module) {
 
         // searchMat = searchMat.bitwiseNot();
 
-        searchMat = searchMat.blur(new cv.Size(10,10));
+        searchMat = searchMat.blur(new cv.Size(10, 10));
 
         searchMat = searchMat.threshold(
             50,
@@ -92,7 +92,6 @@ if (require.main === module) {
         // searchMat = searchMat.dilate(kernel);
 
         searchMat = searchMat.cvtColor(cv.COLOR_RGBA2GRAY, 0);
-
 
 
         // let kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, new cv.Size(7, 7));
@@ -131,20 +130,52 @@ if (require.main === module) {
             // searchMat.drawCircle(circle.center, circle.radius, new cv.Vec3(0,255,0), 1, cv.LINE_AA);
             // searchMat.drawRectangle(contour.boundingRect(), new cv.Vec3(0,255,0), 1, cv.LINE_AA)
             let rect = contour.boundingRect();
-            let probe = searchMat.at(rect.y+1, rect.x+1);
+            let probe = searchMat.at(rect.y + 1, rect.x + 1);
             let p1, p2;
-            if (probe.w === 0) {
-                // Top left corner is not part of the line
+
+            const probeContour = (searchMat, contour) => {
+                let rect = contour.boundingRect();
+                let cross = Math.min(rect.width, rect.height);
+                let val;
+                const getVal = (x, y) => searchMat.at(y, x);
+                for (let g = 0; g < cross; g++) {
+                    // Left top corner
+                    val = getVal(rect.x + g, rect.y + g);
+                    if (val.w === 255) {
+                        searchMat.drawCircle(new cv.Point2(rect.x + g, rect.y + g), 1, new cv.Vec3(0, 0, 255), -1, cv.LINE_AA);
+                        return true;
+                    }
+                    // Right top corner
+                    val = getVal(rect.x + rect.width - g, rect.y + g);
+                    if (val.w === 255) {
+                        searchMat.drawCircle(new cv.Point2(rect.x + rect.width - g, rect.y + g), 1, new cv.Vec3(0, 0, 255), -1, cv.LINE_AA);
+                        return false;
+                    }
+                    // Left bottom corner
+                    val = getVal(rect.x + g, rect.y + rect.height - g);
+                    if (val.w === 255) {
+                        searchMat.drawCircle(new cv.Point2(rect.x + g, rect.y + rect.height - g), 1, new cv.Vec3(0, 0, 255), -1, cv.LINE_AA);
+                        return false;
+                    }
+                    // Right bottom corner
+                    val = getVal(rect.x + rect.width - g, rect.y + rect.height - g);
+                    if (val.w === 255) {
+                        searchMat.drawCircle(new cv.Point2(rect.x + rect.width - g, rect.y + rect.height - g), 1, new cv.Vec3(0, 0, 255), -1, cv.LINE_AA);
+                        return true;
+                    }
+                }
+            }
+
+
+            if (probeContour(searchMat,contour)) {
+                p1 = new cv.Point2(rect.x, rect.y);
+                p2 = new cv.Point2(rect.x + rect.width, rect.y + rect.height);
+            } else {
                 p1 = new cv.Point2(rect.x + rect.width, rect.y);
                 p2 = new cv.Point2(rect.x, rect.y + rect.height);
-            } else {
-                p1 = new cv.Point2(rect.x, rect.y);
-                p2 = new cv.Point2(rect.x+rect.width, rect.y + rect.height);
             }
-            searchMat.drawCircle(new cv.Point2(rect.x+1, rect.y+1), 1, new cv.Vec3(0,0,255), -1, cv.LINE_AA);
-            searchMat.drawLine(p1, p2, new cv.Vec3(0,255,0),1, cv.LINE_AA);
-
-
+            // searchMat.drawCircle(new cv.Point2(rect.x + 1, rect.y + 1), 1, new cv.Vec3(0, 0, 255), -1, cv.LINE_AA);
+            searchMat.drawLine(p1, p2, new cv.Vec3(0, 255, 0), 1, cv.LINE_AA);
 
 
         });
@@ -167,6 +198,7 @@ if (require.main === module) {
         //     canvas.drawCircle(new cv.Point2(town.center.x, town.center.y), town.radius, new cv.Vec3(255, 0, 0), 3);
         // }
 
+        cv.waitKey();
         return canvas;
 
     });
