@@ -77,8 +77,6 @@ if (require.main === module) {
         let max = new cv.Vec3(0, 0, 101);
         searchMat = doMask(searchMat, min, max, false);
 
-        // searchMat = searchMat.bitwiseNot();
-
         searchMat = searchMat.blur(new cv.Size(10, 10));
 
         searchMat = searchMat.threshold(
@@ -87,51 +85,13 @@ if (require.main === module) {
             cv.THRESH_BINARY
         );
 
-
-        // let kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, new cv.Size(15, 15));
-        // searchMat = searchMat.dilate(kernel);
-
-        searchMat = searchMat.cvtColor(cv.COLOR_RGBA2GRAY, 0);
-
-
-        // let kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, new cv.Size(7, 7));
-        // searchMat = searchMat.erode(kernel);
-
-        // if (true) {
-        //     cv.imshow('bla', searchMat);
-        //     cv.waitKey();
-        // }
-
-
-        // searchMat.canny( 50, 200, 3);
-        //
-        let lines = searchMat.houghLinesP(1, Math.PI / 180, 10, 5, 20);
-
-        searchMat = searchMat.cvtColor(cv.COLOR_GRAY2RGBA)
-
-        log('Lines:', lines.length);
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
-            let startPoint = new cv.Point2(line.w, line.x);
-            let endPoint = new cv.Point2(line.y, line.z);
-            // searchMat.drawCircle(startPoint, 2, new cv.Vec3(0, 0, 255), -1, cv.LINE_AA);
-            // searchMat.drawCircle(endPoint, 2, new cv.Vec3(0, 0, 255), -1, cv.LINE_AA);
-            // searchMat.drawLine(startPoint, endPoint, new cv.Vec3(255, 0, 0), 1, cv.LINE_AA);
-        }
-
-
         let contours = searchMat
             .copy()
             .cvtColor(cv.COLOR_BGRA2GRAY)
             .findContours(cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
 
         contours.forEach(contour => {
-            let circle = contour.minEnclosingCircle();
-            // searchMat.drawCircle(circle.center, circle.radius, new cv.Vec3(0,255,0), 1, cv.LINE_AA);
-            // searchMat.drawRectangle(contour.boundingRect(), new cv.Vec3(0,255,0), 1, cv.LINE_AA)
             let rect = contour.boundingRect();
-            let probe = searchMat.at(rect.y + 1, rect.x + 1);
-            let p1, p2;
 
             const probeContour = (searchMat, contour) => {
                 let rect = contour.boundingRect();
@@ -166,13 +126,18 @@ if (require.main === module) {
                 }
             }
 
-
-            if (probeContour(searchMat,contour)) {
-                p1 = new cv.Point2(rect.x, rect.y);
-                p2 = new cv.Point2(rect.x + rect.width, rect.y + rect.height);
+            let p1, p2;
+            const adjust = 4;
+            if (probeContour(searchMat, contour)) {
+                // left top
+                p1 = new cv.Point2(rect.x + adjust, rect.y + adjust);
+                // right bottom
+                p2 = new cv.Point2(rect.x + rect.width - adjust, rect.y + rect.height - adjust);
             } else {
-                p1 = new cv.Point2(rect.x + rect.width, rect.y);
-                p2 = new cv.Point2(rect.x, rect.y + rect.height);
+                // right top
+                p1 = new cv.Point2(rect.x + rect.width - adjust, rect.y + adjust);
+                // left bottom
+                p2 = new cv.Point2(rect.x + adjust, rect.y + rect.height - adjust);
             }
             // searchMat.drawCircle(new cv.Point2(rect.x + 1, rect.y + 1), 1, new cv.Vec3(0, 0, 255), -1, cv.LINE_AA);
             searchMat.drawLine(p1, p2, new cv.Vec3(0, 255, 0), 1, cv.LINE_AA);
@@ -189,16 +154,6 @@ if (require.main === module) {
 
         canvas = findLinesMeta(canvas);
 
-        // const foundCircles = findCirclesMeta(canvas);
-        //
-        // for (let i = 0; i < foundCircles.length; i++) {
-        //
-        //     const found = foundCircles[i];
-        //     const town = {center: {x: found.x, y: found.y}, radius: found.z};
-        //     canvas.drawCircle(new cv.Point2(town.center.x, town.center.y), town.radius, new cv.Vec3(255, 0, 0), 3);
-        // }
-
-        cv.waitKey();
         return canvas;
 
     });
