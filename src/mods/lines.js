@@ -1,4 +1,7 @@
 const cv = require('opencv4nodejs');
+const debug = require('debug');
+const log = debug('bot:lines')
+const logd = debug('bot:d')
 
 const isPixelInCircle = (circle, x, y) => {
     return Math.sqrt(Math.pow((x - circle.x), 2) + Math.pow((y - circle.y), 2)) < circle.z;
@@ -13,10 +16,12 @@ const isPixelInCircles = (x, y, circles) => {
     return undefined;
 }
 const isPixelOutOfBounds = (x, y, mat) => {
-    return x < 0
+    let oob = x < 0
         || x > mat.cols
         || y < 0
         || y > mat.rows;
+    // logd('Pixel', x, y, ' is out of bounds?', oob);
+    return oob;
 }
 
 const findIntersectFromTopLeft = (searchMat, rect, circles, startFromTopLeft = true) => {
@@ -35,7 +40,7 @@ const findIntersectFromTopLeft = (searchMat, rect, circles, startFromTopLeft = t
         p2 = new cv.Point2(rect.x + rect.width - adjust, rect.y + rect.height - adjust);
 
         stepColor = new cv.Vec3(255, 0, 0);
-        foundColor= new cv.Vec3(0, 0, 255);
+        foundColor = new cv.Vec3(0, 0, 255);
 
     } else {
         // right top
@@ -44,7 +49,7 @@ const findIntersectFromTopLeft = (searchMat, rect, circles, startFromTopLeft = t
         p2 = new cv.Point2(rect.x + adjust, rect.y + rect.height - adjust);
 
         stepColor = new cv.Vec3(0, 255, 0);
-        foundColor= new cv.Vec3(255, 0, 255);
+        foundColor = new cv.Vec3(255, 0, 255);
     }
 
     let dx = p2.x - p1.x;
@@ -59,6 +64,7 @@ const findIntersectFromTopLeft = (searchMat, rect, circles, startFromTopLeft = t
         // Iterate over X axis
         D = dy / dx;
 
+        log('Iterate with a positive step');
         // Iterate with a positive step
         let i = 0;
         let leftCircle;
@@ -82,6 +88,7 @@ const findIntersectFromTopLeft = (searchMat, rect, circles, startFromTopLeft = t
             cv.waitKey();
         } while (!leftCircle);
 
+        log('Iterate with a negative step');
         // Iterate with a negative step
         i = 0;
         let rightCircle;
@@ -107,6 +114,7 @@ const findIntersectFromTopLeft = (searchMat, rect, circles, startFromTopLeft = t
         // Iterate over Y axis
         // Iterate with a positive step (= check one end of the line)
 
+        log('Iterate with a positive step');
         let i = 0;
         let topCircle;
         let topPixel;
@@ -128,19 +136,20 @@ const findIntersectFromTopLeft = (searchMat, rect, circles, startFromTopLeft = t
             cv.waitKey();
         } while (!topCircle);
 
+        log('Iterate with a negative step');
         // Iterate with a negative step (=check the other end of the line)
         i = 0;
         let bottomCircle;
         let bottomPixel;
         do {
-            currentX = p1.x + ((i * sign * step) * D);
-            currentY = p1.y + (i * sign * step);
+            currentX = p1.x + ((i * sign * -step) * D);
+            currentY = p1.y + (i * sign * -step);
             i++;
             if (isPixelOutOfBounds(currentX, currentY, searchMat)) {
                 break;
             }
             searchMat.drawCircle(new cv.Point2(currentX, currentY), 1, stepColor, 2);
-            topCircle = isPixelInCircles(currentX, currentY, circles);
+            bottomCircle = isPixelInCircles(currentX, currentY, circles);
             if (bottomCircle) {
                 searchMat.drawCircle(new cv.Point2(currentX, currentY), 1, foundColor, 4);
                 bottomPixel = {x: currentX, y: currentY};
