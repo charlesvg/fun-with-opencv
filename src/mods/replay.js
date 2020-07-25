@@ -11,7 +11,7 @@ const {doKmeansBis} = require('./kmeans');
 const {findCircles, findCirclesMeta} = require('./find-circle');
 const {deltaRgb} = require('../util/color-diff-util');
 const {doMask} = require('./mask');
-const {findIntersectFromTopRight, findIntersectFromTopLeft, probeContour} = require('./lines');
+const {findIntersectFromTopRight, findIntersect, probeContour} = require('./lines');
 
 debug.enable('bot:*');
 
@@ -105,13 +105,11 @@ if (require.main === module) {
             let rect = contour.boundingRect();
 
             searchMat.drawRectangle(rect, new cv.Vec3(0,255,255), 1, cv.LINE_AA);
-            cv.imshow('searchMat', searchMat);
-            cv.waitKey();
 
             if (probeContour(searchMat, contour)) {
-                findIntersectFromTopLeft(searchMat, rect, foundCircles);
+                findIntersect(searchMat, rect, foundCircles);
             } else {
-                findIntersectFromTopLeft(searchMat, rect, foundCircles, false);
+                findIntersect(searchMat, rect, foundCircles, false);
                 // findIntersectFromTopRight(searchMat, rect, foundCircles);
             }
             // searchMat.drawCircle(new cv.Point2(rect.x + 1, rect.y + 1), 1, new cv.Vec3(0, 0, 255), -1, cv.LINE_AA);
