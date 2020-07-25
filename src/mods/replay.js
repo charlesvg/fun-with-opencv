@@ -138,10 +138,17 @@ if (require.main === module) {
                 let dx = p2.x - p1.x;
                 let dy = p2.y - p1.y;
                 let D = dx / dy;
-                for (let n=0; n < 10; n++){
-                    searchMat.drawCircle(new cv.Point2(p1.x + (n*D), p1.y + n), 1, new cv.Vec3(255, 0, 0), 2);
+                if (Math.abs(D) >= 1) {
+                    // Iterate over X axis, otherwise we get a dotted line..
+                    D = dy / dx;
+                    for (let n = 0; n < 10; n++) {
+                        searchMat.drawCircle(new cv.Point2(p1.x + n, p1.y + (n * D)), 1, new cv.Vec3(255, 0, 0), 2);
+                    }
+                } else {
+                    for (let n = 0; n < 10; n++) {
+                        searchMat.drawCircle(new cv.Point2(p1.x + (n * D), p1.y + n), 1, new cv.Vec3(255, 0, 0), 2);
+                    }
                 }
-
             } else {
                 // right top
                 p1 = new cv.Point2(rect.x + rect.width - adjust, rect.y + adjust);
@@ -151,14 +158,26 @@ if (require.main === module) {
                 let dx = p1.x - p2.x;
                 let dy = p1.y - p2.y;
                 let D = dx / dy;
-                for (let n=0; n < 10; n++){
-                    log('n*D', n*D, D);
-                    searchMat.drawCircle(new cv.Point2(p2.x - (n*D), p2.y - n), 1, new cv.Vec3(255, 0, 0), 2);
+
+                if (Math.abs(D) >= 1) {
+                    // Iterate over X axis, otherwise we get a dotted line..
+                    D = dy / dx;
+                    for (let n = 0; n < 10; n++) {
+                        // log('n*D', n*D, D);
+                        searchMat.drawCircle(new cv.Point2(p2.x - n, p2.y - (n * D)), 1, new cv.Vec3(255, 0, 0), 2);
+                    }
+                } else {
+                    for (let n = 0; n < 10; n++) {
+                        // log('n*D', n*D, D);
+                        searchMat.drawCircle(new cv.Point2(p2.x - (n * D), p2.y - n), 1, new cv.Vec3(255, 0, 0), 2);
+                    }
                 }
+
+
             }
             // searchMat.drawCircle(new cv.Point2(rect.x + 1, rect.y + 1), 1, new cv.Vec3(0, 0, 255), -1, cv.LINE_AA);
 
-            lines.push({p1:p1, p2:p2});
+            lines.push({p1: p1, p2: p2});
             searchMat.drawLine(p1, p2, new cv.Vec3(0, 255, 0), 1, cv.LINE_AA);
         });
 
@@ -180,7 +199,6 @@ if (require.main === module) {
 
         const retval = findLinesMeta(canvas);
         canvas = retval.mat;
-
 
 
         return canvas;
