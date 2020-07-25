@@ -139,8 +139,12 @@ if (require.main === module) {
         // Gray
         // let min = new cv.Vec3(0, 0, 50);
         // let max = new cv.Vec3(0, 0, 101);
-        let min = new cv.Vec3(2, 210, 135);
-        let max = new cv.Vec3(4, 220, 180);
+        // Red
+        // let min = new cv.Vec3(2, 210, 135);
+        // let max = new cv.Vec3(4, 220, 180);
+        // Blue
+        let min = new cv.Vec3(112, 187, 203);
+        let max = new cv.Vec3(116, 191, 206);
 
         canvas = findLinesMeta(canvas, min, max);
         log('after');
