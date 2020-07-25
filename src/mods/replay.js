@@ -93,13 +93,26 @@ if (require.main === module) {
 
         const foundCircles = findCirclesMeta(canvas);
 
+        for (let i = 0; i < foundCircles.length; i++) {
+            const found = foundCircles[i];
+            const town = {center: {x: found.x, y: found.y}, radius: found.z};
+            searchMat.drawCircle(new cv.Point2(town.center.x, town.center.y), town.radius, new cv.Vec3(0, 255, 0), 1);
+        }
+
         contours.forEach(contour => {
+            log('Next contour');
+
             let rect = contour.boundingRect();
+
+            searchMat.drawRectangle(rect, new cv.Vec3(0,255,255), 1, cv.LINE_AA);
+            cv.imshow('searchMat', searchMat);
+            cv.waitKey();
 
             if (probeContour(searchMat, contour)) {
                 findIntersectFromTopLeft(searchMat, rect, foundCircles);
             } else {
-                findIntersectFromTopRight(searchMat, rect, foundCircles);
+                findIntersectFromTopLeft(searchMat, rect, foundCircles, false);
+                // findIntersectFromTopRight(searchMat, rect, foundCircles);
             }
             // searchMat.drawCircle(new cv.Point2(rect.x + 1, rect.y + 1), 1, new cv.Vec3(0, 0, 255), -1, cv.LINE_AA);
 
@@ -108,11 +121,7 @@ if (require.main === module) {
 
 
 
-        for (let i = 0; i < foundCircles.length; i++) {
-            const found = foundCircles[i];
-            const town = {center: {x: found.x, y: found.y}, radius: found.z};
-            searchMat.drawCircle(new cv.Point2(town.center.x, town.center.y), town.radius, new cv.Vec3(0, 255, 0), 1);
-        }
+
 
         return searchMat;
     }
