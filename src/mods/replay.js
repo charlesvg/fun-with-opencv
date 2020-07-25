@@ -132,7 +132,7 @@ if (require.main === module) {
         return searchMat;
     }
 
-    const resolvedPath = path.resolve(appRootPath.path, './assets/record/case-5');
+    const resolvedPath = path.resolve(appRootPath.path, './assets/record/case-9');
     replay(false, resolvedPath, (canvas) => {
 
         log('before');
@@ -140,11 +140,11 @@ if (require.main === module) {
         // let min = new cv.Vec3(0, 0, 50);
         // let max = new cv.Vec3(0, 0, 101);
         // Red
-        // let min = new cv.Vec3(2, 210, 135);
-        // let max = new cv.Vec3(4, 220, 180);
+        let min = new cv.Vec3(2, 210, 135);
+        let max = new cv.Vec3(4, 220, 180);
         // Blue
-        let min = new cv.Vec3(112, 187, 203);
-        let max = new cv.Vec3(116, 191, 206);
+        // let min = new cv.Vec3(112, 187, 165);
+        // let max = new cv.Vec3(116, 195, 206);
 
         canvas = findLinesMeta(canvas, min, max);
         log('after');
