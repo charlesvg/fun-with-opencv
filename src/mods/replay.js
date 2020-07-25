@@ -141,11 +141,11 @@ if (require.main === module) {
                 if (Math.abs(D) >= 1) {
                     // Iterate over X axis, otherwise we get a dotted line..
                     D = dy / dx;
-                    for (let n = 0; n < 10; n++) {
+                    for (let n = 0; n < 100;  n+=4) {
                         searchMat.drawCircle(new cv.Point2(p1.x + n, p1.y + (n * D)), 1, new cv.Vec3(255, 0, 0), 2);
                     }
                 } else {
-                    for (let n = 0; n < 10; n++) {
+                    for (let n = 0; n < 100; n+=4) {
                         searchMat.drawCircle(new cv.Point2(p1.x + (n * D), p1.y + n), 1, new cv.Vec3(255, 0, 0), 2);
                     }
                 }
@@ -162,12 +162,12 @@ if (require.main === module) {
                 if (Math.abs(D) >= 1) {
                     // Iterate over X axis, otherwise we get a dotted line..
                     D = dy / dx;
-                    for (let n = 0; n < 10; n++) {
+                    for (let n = 0; n < 100; n+=4) {
                         // log('n*D', n*D, D);
                         searchMat.drawCircle(new cv.Point2(p2.x - n, p2.y - (n * D)), 1, new cv.Vec3(255, 0, 0), 2);
                     }
                 } else {
-                    for (let n = 0; n < 10; n++) {
+                    for (let n = 0; n < 100; n+=4) {
                         // log('n*D', n*D, D);
                         searchMat.drawCircle(new cv.Point2(p2.x - (n * D), p2.y - n), 1, new cv.Vec3(255, 0, 0), 2);
                     }
