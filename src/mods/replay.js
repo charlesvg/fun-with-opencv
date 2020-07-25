@@ -100,18 +100,20 @@ if (require.main === module) {
         }
 
         contours.forEach(contour => {
-            log('Next contour');
-
             let rect = contour.boundingRect();
+            let circle = contour.minEnclosingCircle();
+            if (circle.radius > 10) {
+                searchMat.drawRectangle(rect, new cv.Vec3(0,255,255), 1, cv.LINE_AA);
 
-            searchMat.drawRectangle(rect, new cv.Vec3(0,255,255), 1, cv.LINE_AA);
-
-            if (probeContour(searchMat, contour)) {
-                findIntersect(searchMat, rect, foundCircles);
-            } else {
-                findIntersect(searchMat, rect, foundCircles, false);
-                // findIntersectFromTopRight(searchMat, rect, foundCircles);
+                let startFromTopLeft = probeContour(searchMat, contour);
+                let foundLine = findIntersect(searchMat, rect, foundCircles, startFromTopLeft);
+                if (foundLine) {
+                    searchMat.drawLine(foundLine.startPoint, foundLine.endPoint, new cv.Vec3(0, 255, 0), 2, cv.LINE_AA);
+                }
             }
+
+
+
             // searchMat.drawCircle(new cv.Point2(rect.x + 1, rect.y + 1), 1, new cv.Vec3(0, 0, 255), -1, cv.LINE_AA);
 
             // searchMat.drawLine(p1, p2, new cv.Vec3(0, 255, 0), 1, cv.LINE_AA);

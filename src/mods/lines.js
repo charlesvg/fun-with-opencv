@@ -29,6 +29,8 @@ const findIntersect = (searchMat, rect, circles, startFromTopLeft = true) => {
     const sign = startFromTopLeft ? 1 : -1;
 
     let stepColor, foundColor;
+    let startCircle, endCircle;
+    let startPoint, endPoint;
 
     if (startFromTopLeft) {
         // left top
@@ -63,8 +65,6 @@ const findIntersect = (searchMat, rect, circles, startFromTopLeft = true) => {
 
         // Iterate with a positive step
         let i = 0;
-        let leftCircle;
-        let leftPixel;
         do {
             currentX = p1.x + (i * sign * step);
             currentY = p1.y + ((i * sign * step) * D);
@@ -73,19 +73,17 @@ const findIntersect = (searchMat, rect, circles, startFromTopLeft = true) => {
                 break;
             }
             searchMat.drawCircle(new cv.Point2(currentX, currentY), 1, stepColor, 2);
-            leftCircle = isPixelInCircles(currentX, currentY, circles);
+            startCircle = isPixelInCircles(currentX, currentY, circles);
 
-            if (leftCircle) {
+            if (startCircle) {
                 searchMat.drawCircle(new cv.Point2(currentX, currentY), 1, foundColor, 4);
-                leftPixel = {x: currentX, y: currentY};
+                startPoint = new cv.Point2(currentX, currentY);
             }
 
-        } while (!leftCircle);
+        } while (!startCircle);
 
         // Iterate with a negative step
         i = 0;
-        let rightCircle;
-        let rightPixel;
         do {
             currentX = p1.x + (i * sign * -step);
             currentY = p1.y + ((i * sign * -step) * D);
@@ -94,20 +92,18 @@ const findIntersect = (searchMat, rect, circles, startFromTopLeft = true) => {
                 break;
             }
             searchMat.drawCircle(new cv.Point2(currentX, currentY), 1, stepColor, 2);
-            rightCircle = isPixelInCircles(currentX, currentY, circles);
-            if (rightCircle) {
+            endCircle = isPixelInCircles(currentX, currentY, circles);
+            if (endCircle) {
                 searchMat.drawCircle(new cv.Point2(currentX, currentY), 1, foundColor, 4);
-                rightPixel = {x: currentX, y: currentY};
+                endPoint = new cv.Point2(currentX, currentY);
             }
 
-        } while (!rightCircle);
+        } while (!endCircle);
     } else {
         // Iterate over Y axis
         // Iterate with a positive step (= check one end of the line)
 
         let i = 0;
-        let topCircle;
-        let topPixel;
         do {
             currentX = p1.x + ((i * sign * step) * D);
             currentY = p1.y + (i * sign * step);
@@ -116,18 +112,16 @@ const findIntersect = (searchMat, rect, circles, startFromTopLeft = true) => {
                 break;
             }
             searchMat.drawCircle(new cv.Point2(currentX, currentY), 1, stepColor, 2);
-            topCircle = isPixelInCircles(currentX, currentY, circles);
-            if (topCircle) {
+            startCircle = isPixelInCircles(currentX, currentY, circles);
+            if (startCircle) {
                 searchMat.drawCircle(new cv.Point2(currentX, currentY), 1, foundColor, 4);
-                topPixel = {x: currentX, y: currentY};
+                startPoint = new cv.Point2(currentX, currentY);
             }
 
-        } while (!topCircle);
+        } while (!startCircle);
 
         // Iterate with a negative step (=check the other end of the line)
         i = 0;
-        let bottomCircle;
-        let bottomPixel;
         do {
             currentX = p1.x + ((i * sign * -step) * D);
             currentY = p1.y + (i * sign * -step);
@@ -136,18 +130,30 @@ const findIntersect = (searchMat, rect, circles, startFromTopLeft = true) => {
                 break;
             }
             searchMat.drawCircle(new cv.Point2(currentX, currentY), 1, stepColor, 2);
-            bottomCircle = isPixelInCircles(currentX, currentY, circles);
-            if (bottomCircle) {
+            endCircle = isPixelInCircles(currentX, currentY, circles);
+            if (endCircle) {
                 searchMat.drawCircle(new cv.Point2(currentX, currentY), 1, foundColor, 4);
-                bottomPixel = {x: currentX, y: currentY};
+                endPoint = new cv.Point2(currentX, currentY);
             }
 
-        } while (!bottomCircle);
+        } while (!endCircle);
     }
+
+    if (startCircle && endCircle) {
+        return {
+            startPoint: startPoint,
+            endPoint: endPoint,
+            startCircle: startCircle,
+            endCircle: endCircle
+        }
+    } else {
+        return undefined;
+    }
+
+
 }
 
 exports.findIntersect = findIntersect;
-
 
 
 const probeContour = (searchMat, contour) => {
