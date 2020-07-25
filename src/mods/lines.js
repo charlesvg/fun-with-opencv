@@ -16,14 +16,14 @@ const isPixelInCircles = (x, y, circles) => {
 }
 const isPixelOutOfBounds = (x, y, mat) => {
     return x < 0
-        || x > mat.cols
+        || x >= mat.cols
         || y < 0
-        || y > mat.rows;
+        || y >= mat.rows;
 }
 
 const findIntersect = (searchMat, rect, circles, startFromTopLeft = true) => {
     let p1, p2;
-    const adjust = 4;
+    const adjust = 10;
     const step = 20;
 
     const sign = startFromTopLeft ? 1 : -1;
@@ -160,7 +160,13 @@ const probeContour = (searchMat, contour) => {
     let rect = contour.boundingRect();
     let cross = Math.min(rect.width, rect.height);
     let val;
-    const getVal = (x, y) => searchMat.at(y, x);
+    const getVal = (x, y) => {
+        if (isPixelOutOfBounds(x, y, searchMat)) {
+            return {};
+        } else {
+            return searchMat.at(y, x)
+        }
+    };
     for (let g = 0; g < cross; g++) {
         // Left top corner
         val = getVal(rect.x + g, rect.y + g);
