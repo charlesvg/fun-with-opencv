@@ -91,20 +91,22 @@ if (require.main === module) {
             .cvtColor(cv.COLOR_BGRA2GRAY)
             .findContours(cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
 
+        const foundCircles = findCirclesMeta(canvas);
+
         contours.forEach(contour => {
             let rect = contour.boundingRect();
 
             if (probeContour(searchMat, contour)) {
-                findIntersectFromTopLeft(searchMat, rect);
+                findIntersectFromTopLeft(searchMat, rect, foundCircles);
             } else {
-                findIntersectFromTopRight(searchMat, rect);
+                findIntersectFromTopRight(searchMat, rect, foundCircles);
             }
             // searchMat.drawCircle(new cv.Point2(rect.x + 1, rect.y + 1), 1, new cv.Vec3(0, 0, 255), -1, cv.LINE_AA);
 
             // searchMat.drawLine(p1, p2, new cv.Vec3(0, 255, 0), 1, cv.LINE_AA);
         });
 
-        const foundCircles = findCirclesMeta(canvas);
+
 
         for (let i = 0; i < foundCircles.length; i++) {
             const found = foundCircles[i];

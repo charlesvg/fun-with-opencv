@@ -1,7 +1,22 @@
 const cv = require('opencv4nodejs');
 
 const isPixelInCircle = (circle, x, y) => {
-    return Math.sqrt(Math.pow((x - circle.center.x), 2) + Math.pow((y - circle.center.y), 2)) < circle.radius;
+    return Math.sqrt(Math.pow((x - circle.x), 2) + Math.pow((y - circle.y), 2)) < circle.z;
+}
+
+const isPixelInCircles = (x, y, circles) => {
+    for (let i = 0; i < circles.length; i++) {
+        if (isPixelInCircle(circles[i], x, y)) {
+            return circles[i];
+        }
+    }
+    return undefined;
+}
+const isPixelOutOfBounds = (x, y, mat) => {
+    return x < 0
+        || x > mat.cols
+        || y < 0
+        || y > mat.rows;
 }
 
 const findIntersectFromTopLeft = (searchMat, rect, circles) => {
@@ -28,17 +43,52 @@ const findIntersectFromTopLeft = (searchMat, rect, circles) => {
         D = dy / dx;
 
         // Iterate with a positive step
-        for (let i = 0; i < stepMaxCount; i++) {
+        let i = 0;
+        let leftCircle;
+        let leftPixel;
+        do {
             currentX = p1.x + (i * step);
             currentY = p1.y + ((i * step) * D);
-            searchMat.drawCircle(new cv.Point2(currentX, currentY), 1, new cv.Vec3(255, 0, 0), 2);
-        }
-        // Iterate with a negative step
-        for (let i = 0; i < stepMaxCount; i++) {
-            currentX = p1.x + (i * -step);
-            currentY = p1.y + ((i * -step) * D);
+            i++;
+            if (isPixelOutOfBounds(currentX, currentY, searchMat)) {
+                break;
+            }
             searchMat.drawCircle(new cv.Point2(currentX, currentY), 1, new cv.Vec3(255, 255, 0), 2);
-        }
+            leftCircle = isPixelInCircles(currentX, currentY, circles);
+            if (leftCircle) {
+                searchMat.drawCircle(new cv.Point2(currentX, currentY), 1, new cv.Vec3(0, 0, 255), 4);
+                leftPixel = {x: currentX, y: currentY};
+            }
+        } while (!leftCircle);
+
+        // for (let i = 0; i < stepMaxCount; i++) {
+        //     currentX = p1.x + (i * step);
+        //     currentY = p1.y + ((i * step) * D);
+        //     searchMat.drawCircle(new cv.Point2(currentX, currentY), 1, new cv.Vec3(255, 0, 0), 2);
+        // }
+        // Iterate with a negative step
+        i = 0;
+        let rightCircle;
+        let rightPixel;
+        do {
+                currentX = p1.x + (i * -step);
+                currentY = p1.y + ((i * -step) * D);
+            i++;
+            if (isPixelOutOfBounds(currentX, currentY, searchMat)) {
+                break;
+            }
+            searchMat.drawCircle(new cv.Point2(currentX, currentY), 1, new cv.Vec3(255, 255, 0), 2);
+            rightCircle = isPixelInCircles(currentX, currentY, circles);
+            if (rightCircle) {
+                searchMat.drawCircle(new cv.Point2(currentX, currentY), 1, new cv.Vec3(0, 0, 255), 4);
+                rightPixel = {x: currentX, y: currentY};
+            }
+        } while (!rightCircle);
+        // for (let i = 0; i < stepMaxCount; i++) {
+        //     currentX = p1.x + (i * -step);
+        //     currentY = p1.y + ((i * -step) * D);
+        //     searchMat.drawCircle(new cv.Point2(currentX, currentY), 1, new cv.Vec3(255, 255, 0), 2);
+        // }
     } else {
         // Iterate over Y axis
         // Iterate with a positive step (= check one end of the line)
