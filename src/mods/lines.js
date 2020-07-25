@@ -1,8 +1,14 @@
 const cv = require('opencv4nodejs');
 
-const findIntersectFromTopLeft = (searchMat, rect) => {
+const isPixelInCircle = (circle, x, y) => {
+    return Math.sqrt(Math.pow((x - circle.center.x), 2) + Math.pow((y - circle.center.y), 2)) < circle.radius;
+}
+
+const findIntersectFromTopLeft = (searchMat, rect, circles) => {
     let p1, p2;
     const adjust = 4;
+    const step = 20;
+    const stepMaxCount = 5;
 
     // left top
     p1 = new cv.Point2(rect.x + adjust, rect.y + adjust);
@@ -12,15 +18,41 @@ const findIntersectFromTopLeft = (searchMat, rect) => {
     let dx = p2.x - p1.x;
     let dy = p2.y - p1.y;
     let D = dx / dy;
+
+    let currentX, currentY;
+
+    // Find the axis for which 0 < D < 1
+    // Otherwise, by definition, we'll skip pixels: each time we increase one axis with 1, the other axis increases with D
     if (Math.abs(D) >= 1) {
-        // Iterate over X axis, otherwise we get a dotted line..
+        // Iterate over X axis
         D = dy / dx;
-        for (let n = 0; n < 100; n += 4) {
-            searchMat.drawCircle(new cv.Point2(p1.x + n, p1.y + (n * D)), 1, new cv.Vec3(255, 0, 0), 2);
+
+        // Iterate with a positive step
+        for (let i = 0; i < stepMaxCount; i++) {
+            currentX = p1.x + (i * step);
+            currentY = p1.y + ((i * step) * D);
+            searchMat.drawCircle(new cv.Point2(currentX, currentY), 1, new cv.Vec3(255, 0, 0), 2);
+        }
+        // Iterate with a negative step
+        for (let i = 0; i < stepMaxCount; i++) {
+            currentX = p1.x + (i * -step);
+            currentY = p1.y + ((i * -step) * D);
+            searchMat.drawCircle(new cv.Point2(currentX, currentY), 1, new cv.Vec3(255, 255, 0), 2);
         }
     } else {
-        for (let n = 0; n < 100; n += 4) {
-            searchMat.drawCircle(new cv.Point2(p1.x + (n * D), p1.y + n), 1, new cv.Vec3(255, 0, 0), 2);
+        // Iterate over Y axis
+        // Iterate with a positive step (= check one end of the line)
+        for (let i = 0; i < stepMaxCount; i++) {
+            currentX = p1.x + ((i * step) * D);
+            currentY = p1.y + (i * step);
+            searchMat.drawCircle(new cv.Point2(currentX, currentY), 1, new cv.Vec3(255, 0, 0), 2);
+        }
+
+        // Iterate with a negative step (=check the other end of the line)
+        for (let i = 0; i < stepMaxCount; i++) {
+            currentX = p1.x + ((i * -step) * D);
+            currentY = p1.y + (i * -step);
+            searchMat.drawCircle(new cv.Point2(currentX, currentY), 1, new cv.Vec3(255, 255, 0), 2);
         }
     }
 }
@@ -30,6 +62,8 @@ exports.findIntersectFromTopLeft = findIntersectFromTopLeft;
 const findIntersectFromTopRight = (searchMat, rect) => {
     let p1, p2;
     const adjust = 4;
+    const step = 20;
+    const stepMaxCount = 5;
 
     // right top
     p1 = new cv.Point2(rect.x + rect.width - adjust, rect.y + adjust);
@@ -40,15 +74,37 @@ const findIntersectFromTopRight = (searchMat, rect) => {
     let dy = p1.y - p2.y;
     let D = dx / dy;
 
+    // Find the axis for which 0 < D < 1
+    // Otherwise, by definition, we'll skip pixels: each time we increase one axis with 1, the other axis increases with D
     if (Math.abs(D) >= 1) {
-        // Iterate over X axis, otherwise we get a dotted line..
+        // Iterate over X axis
         D = dy / dx;
-        for (let n = 0; n < 100; n += 4) {
-            searchMat.drawCircle(new cv.Point2(p2.x - n, p2.y - (n * D)), 1, new cv.Vec3(255, 0, 0), 2);
+
+        // Iterate with a positive step
+        for (let i = 0; i < stepMaxCount; i++) {
+            currentX = p1.x - (i * step);
+            currentY = p1.y - ((i * step) * D);
+            searchMat.drawCircle(new cv.Point2(currentX, currentY), 1, new cv.Vec3(255, 0, 0), 2);
+        }
+        // Iterate with a negative step
+        for (let i = 0; i < stepMaxCount; i++) {
+            currentX = p1.x - (i * -step);
+            currentY = p1.y - ((i * -step) * D);
+            searchMat.drawCircle(new cv.Point2(currentX, currentY), 1, new cv.Vec3(255, 255, 0), 2);
         }
     } else {
-        for (let n = 0; n < 100; n += 4) {
-            searchMat.drawCircle(new cv.Point2(p2.x - (n * D), p2.y - n), 1, new cv.Vec3(255, 0, 0), 2);
+        // Iterate over Y axis
+        for (let i = 0; i < stepMaxCount; i++) {
+            currentX = p1.x - ((i * step) * D);
+            currentY = p1.y - (i * step);
+            searchMat.drawCircle(new cv.Point2(currentX, currentY), 1, new cv.Vec3(255, 0, 0), 2);
+        }
+
+        // Iterate with a negative step (=check the other end of the line)
+        for (let i = 0; i < stepMaxCount; i++) {
+            currentX = p1.x - ((i * -step) * D);
+            currentY = p1.y - (i * -step);
+            searchMat.drawCircle(new cv.Point2(currentX, currentY), 1, new cv.Vec3(255, 255, 0), 2);
         }
     }
 }
