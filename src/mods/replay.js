@@ -70,18 +70,28 @@ exports.replay = replay;
 
 if (require.main === module) {
 
-    const findLinesMeta = (canvas) => {
+    const findLinesMeta = (canvas, minColor, maxColor) => {
 
         let searchMat = canvas.copy();
 
-        let min = new cv.Vec3(0, 0, 50);
-        let max = new cv.Vec3(0, 0, 101);
-        searchMat = doMask(searchMat, min, max, false);
+        const foundCircles = findCirclesMeta(canvas);
+
+        // Remove the towns
+        for (let i = 0; i < foundCircles.length; i++) {
+            const found = foundCircles[i];
+            const town = {center: {x: found.x, y: found.y}, radius: found.z};
+            searchMat.drawCircle(new cv.Point2(town.center.x, town.center.y), town.radius+5, new cv.Vec3(0, 0, 0), -1);
+        }
+
+
+        searchMat = doMask(searchMat, minColor, maxColor, false);
+
+
 
         searchMat = searchMat.blur(new cv.Size(10, 10));
 
         searchMat = searchMat.threshold(
-            50,
+            5,
             255,
             cv.THRESH_BINARY
         );
@@ -90,14 +100,6 @@ if (require.main === module) {
             .copy()
             .cvtColor(cv.COLOR_BGRA2GRAY)
             .findContours(cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
-
-        const foundCircles = findCirclesMeta(canvas);
-
-        for (let i = 0; i < foundCircles.length; i++) {
-            const found = foundCircles[i];
-            const town = {center: {x: found.x, y: found.y}, radius: found.z};
-            searchMat.drawCircle(new cv.Point2(town.center.x, town.center.y), town.radius, new cv.Vec3(0, 255, 0), 1);
-        }
 
         contours.forEach(contour => {
             let rect = contour.boundingRect();
@@ -120,7 +122,11 @@ if (require.main === module) {
         });
 
 
-
+        for (let i = 0; i < foundCircles.length; i++) {
+            const found = foundCircles[i];
+            const town = {center: {x: found.x, y: found.y}, radius: found.z};
+            searchMat.drawCircle(new cv.Point2(town.center.x, town.center.y), town.radius, new cv.Vec3(0, 255, 0), 1);
+        }
 
 
         return searchMat;
@@ -129,7 +135,15 @@ if (require.main === module) {
     const resolvedPath = path.resolve(appRootPath.path, './assets/record/case-5');
     replay(false, resolvedPath, (canvas) => {
 
-        canvas = findLinesMeta(canvas);
+        log('before');
+        // Gray
+        // let min = new cv.Vec3(0, 0, 50);
+        // let max = new cv.Vec3(0, 0, 101);
+        let min = new cv.Vec3(2, 210, 135);
+        let max = new cv.Vec3(4, 220, 180);
+
+        canvas = findLinesMeta(canvas, min, max);
+        log('after');
         return canvas;
 
     });
