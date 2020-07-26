@@ -5,6 +5,7 @@ const {deltaRgbFromVec} = require('./util/color-diff-util');
 const {drawText} = require('./util/draw-text');
 const {doSkirm} = require('./mods/skirm');
 const {detectTownAllegiance} = require('./mods/allegiance');
+const {findLinesMeta} = require('./mods/lines');
 const robot = require('robotjs');
 const debug = require('debug');
 const log = debug('bot:bot')
@@ -94,6 +95,10 @@ exports.botWindow = {
                 drawText(botMat, 'Unknown', greenColor, town.center.x, town.center.y + 50)
             }
         });
+    },
+    detectRoads: () => {
+        let lines = findLinesMeta(botMat, towns);
+        lines.forEach(line => botMat.drawLine(line.startPoint, line.endPoint, new cv.Vec3(0, 255, 0), 2, cv.LINE_AA));
     },
     refresh: () => {
         const title = settings.bot.window.title;

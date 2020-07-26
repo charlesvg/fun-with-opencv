@@ -20,7 +20,9 @@ debug.enable('bot:*');
         botWindow.detectTowns();
         botWindow.detectAllegiance();
         botWindow.detectSkirmishes();
+        botWindow.detectRoads();
         botWindow.refresh();
+
     }, 250);
 
     log('done');

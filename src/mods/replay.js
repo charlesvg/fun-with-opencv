@@ -11,7 +11,7 @@ const {doKmeansBis} = require('./kmeans');
 const {findCircles, findCirclesMeta} = require('./find-circle');
 const {deltaRgb} = require('../util/color-diff-util');
 const {doMask} = require('./mask');
-const {findIntersectFromTopRight, findIntersect, probeContour} = require('./lines');
+const {findLinesMeta} = require('./lines');
 
 debug.enable('bot:*');
 
@@ -78,111 +78,22 @@ exports.replay = replay;
 
 if (require.main === module) {
 
-    const findLinesMeta = (canvas, minColor, maxColor, foundCircles) => {
-
-        let searchMat = canvas.copy();
-
-        // Remove the towns
-        for (let i = 0; i < foundCircles.length; i++) {
-            const found = foundCircles[i];
-            const town = {center: {x: found.x, y: found.y}, radius: found.z};
-            searchMat.drawCircle(new cv.Point2(town.center.x, town.center.y), town.radius+5, new cv.Vec3(0, 0, 0), -1);
-        }
-
-        // Mask (preserve) the target color
-        searchMat = doMask(searchMat, minColor, maxColor, false);
-
-        // Blur before threshold (remove noise)
-        searchMat = searchMat.blur(new cv.Size(10, 10));
-
-        // Threshold (remove noise)
-        searchMat = searchMat.threshold(
-            5,
-            255,
-            cv.THRESH_BINARY
-        );
-
-        // Find blobs
-        let contours = searchMat
-            .copy()
-            .cvtColor(cv.COLOR_BGRA2GRAY)
-            .findContours(cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
-
-        // Infer line from blobs until intersected with a town circle
-        let lines = [];
-        contours.forEach(contour => {
-            let rect = contour.boundingRect();
-            let circle = contour.minEnclosingCircle();
-            if (circle.radius > 10) {
-                searchMat.drawRectangle(rect, new cv.Vec3(0,255,255), 1, cv.LINE_AA);
-
-                // Returns undefined if the contour starts outside of bounds
-                let startFromTopLeft = probeContour(searchMat, contour);
-                if (startFromTopLeft !== undefined) {
-                    let foundLine = findIntersect(searchMat, rect, foundCircles, startFromTopLeft);
-                    if (foundLine) {
-                        lines.push(foundLine);
-                        searchMat.drawLine(foundLine.startPoint, foundLine.endPoint, new cv.Vec3(0, 255, 0), 2, cv.LINE_AA);
-                    }
-                }
-            }
 
 
-
-            // searchMat.drawCircle(new cv.Point2(rect.x + 1, rect.y + 1), 1, new cv.Vec3(0, 0, 255), -1, cv.LINE_AA);
-
-            // searchMat.drawLine(p1, p2, new cv.Vec3(0, 255, 0), 1, cv.LINE_AA);
-        });
-
-
-        for (let i = 0; i < foundCircles.length; i++) {
-            const found = foundCircles[i];
-            const town = {center: {x: found.x, y: found.y}, radius: found.z};
-            searchMat.drawCircle(new cv.Point2(town.center.x, town.center.y), town.radius, new cv.Vec3(0, 255, 0), 1);
-        }
-
-
-        return lines;
-    }
-
-    const resolvedPath = path.resolve(appRootPath.path, './assets/record/case-5');
+    const resolvedPath = path.resolve(appRootPath.path, './assets/record/case-10');
     replay(false, resolvedPath, (canvas) => {
 
+        const towns = [];
         const foundCircles = findCirclesMeta(canvas);
         for (let i = 0; i < foundCircles.length; i++) {
             const found = foundCircles[i];
             const town = {center: {x: found.x, y: found.y}, radius: found.z};
+            towns.push(town);
             canvas.drawCircle(new cv.Point2(town.center.x, town.center.y), town.radius, new cv.Vec3(0, 255, 0), 1);
         }
 
         log('before');
-        // Gray
-        // let min = new cv.Vec3(0, 0, 50);
-        // let max = new cv.Vec3(0, 0, 101);
-        // Red
-        // let min = new cv.Vec3(2, 210, 135);
-        // let max = new cv.Vec3(4, 220, 180);
-        // Blue
-        // let min = new cv.Vec3(112, 187, 165);
-        // let max = new cv.Vec3(116, 195, 206);
-
-        let lines = [];
-
-        // Gray
-        let min = new cv.Vec3(0, 0, 50);
-        let max = new cv.Vec3(0, 0, 101);
-        lines = lines.concat(findLinesMeta(canvas, min, max, foundCircles));
-
-        // Red
-        min = new cv.Vec3(2, 210, 135);
-        max = new cv.Vec3(4, 220, 180);
-        lines = lines.concat(findLinesMeta(canvas, min, max, foundCircles));
-
-        // Blue
-        min = new cv.Vec3(112, 187, 165);
-        max = new cv.Vec3(116, 195, 206);
-        lines = lines.concat(findLinesMeta(canvas, min, max, foundCircles));
-
+        let lines = findLinesMeta(canvas, towns);
         lines.forEach(line => canvas.drawLine(line.startPoint, line.endPoint, new cv.Vec3(0, 255, 0), 2, cv.LINE_AA));
         log('after');
 
