@@ -15,12 +15,7 @@ const img2mat = (img, width, height) => {
     return new cv.Mat(img.image, height, width, cv.CV_8UC4);
 }
 
-const topOffset = 200;
-const rightOffset = 310;
-const leftOffset = 65;
-const bottomOffset = 150;
-
-const searchRegion = new cv.Rect(leftOffset, topOffset, 1280 - rightOffset - leftOffset, 720 - topOffset - bottomOffset);
+const searchRegion = settings.bot.window.searchRegion;
 
 const botMat = new cv.Mat(searchRegion.height, searchRegion.width, cv.CV_8UC4);
 const sourceMat = new cv.Mat(searchRegion.height, searchRegion.width, cv.CV_8UC4);

@@ -22,7 +22,12 @@ const isPixelOutOfBounds = (x, y, mat) => {
         || y >= mat.rows;
 }
 
-const findIntersect = (searchMat, rect, towns, startFromTopLeft = true) => {
+const debugShow = (searchMat) => {
+    cv.imshow('searchMat', searchMat);
+    cv.waitKey(80);
+}
+
+const findIntersect = (searchMat, rect, towns, startFromTopLeft = true, debugEnabled = false) => {
     let p1, p2;
     const adjust = 10;
     const step = 20;
@@ -39,7 +44,7 @@ const findIntersect = (searchMat, rect, towns, startFromTopLeft = true) => {
         // right bottom
         p2 = new cv.Point2(rect.x + rect.width - adjust, rect.y + rect.height - adjust);
 
-        stepColor = new cv.Vec3(255, 0, 0);
+        stepColor = new cv.Vec3(0, 0, 255);
         foundColor = new cv.Vec3(0, 0, 255);
 
     } else {
@@ -73,11 +78,16 @@ const findIntersect = (searchMat, rect, towns, startFromTopLeft = true) => {
             if (isPixelOutOfBounds(currentX, currentY, searchMat)) {
                 break;
             }
-            // searchMat.drawCircle(new cv.Point2(currentX, currentY), 1, stepColor, 2);
+            if (debugEnabled) {
+                searchMat.drawCircle(new cv.Point2(currentX, currentY), 1, stepColor, 2);
+                debugShow(searchMat);
+            }
             startCircle = isPixelInTowns(currentX, currentY, towns);
 
             if (startCircle) {
-                // searchMat.drawCircle(new cv.Point2(currentX, currentY), 1, foundColor, 4);
+                if (debugEnabled) {
+                    searchMat.drawCircle(new cv.Point2(currentX, currentY), 1, foundColor, 8);
+                }
                 startPoint = new cv.Point2(currentX, currentY);
             }
 
@@ -92,10 +102,15 @@ const findIntersect = (searchMat, rect, towns, startFromTopLeft = true) => {
             if (isPixelOutOfBounds(currentX, currentY, searchMat)) {
                 break;
             }
-            // searchMat.drawCircle(new cv.Point2(currentX, currentY), 1, stepColor, 2);
+            if (debugEnabled) {
+                debugShow(searchMat);
+                searchMat.drawCircle(new cv.Point2(currentX, currentY), 1, stepColor, 2);
+            }
             endCircle = isPixelInTowns(currentX, currentY, towns);
             if (endCircle) {
-                // searchMat.drawCircle(new cv.Point2(currentX, currentY), 1, foundColor, 4);
+                if (debugEnabled) {
+                    searchMat.drawCircle(new cv.Point2(currentX, currentY), 1, foundColor, 8);
+                }
                 endPoint = new cv.Point2(currentX, currentY);
             }
 
@@ -112,10 +127,15 @@ const findIntersect = (searchMat, rect, towns, startFromTopLeft = true) => {
             if (isPixelOutOfBounds(currentX, currentY, searchMat)) {
                 break;
             }
-            // searchMat.drawCircle(new cv.Point2(currentX, currentY), 1, stepColor, 2);
+            if (debugEnabled) {
+                debugShow(searchMat);
+                searchMat.drawCircle(new cv.Point2(currentX, currentY), 1, stepColor, 2);
+            }
             startCircle = isPixelInTowns(currentX, currentY, towns);
             if (startCircle) {
-                // searchMat.drawCircle(new cv.Point2(currentX, currentY), 1, foundColor, 4);
+                if (debugEnabled) {
+                    searchMat.drawCircle(new cv.Point2(currentX, currentY), 1, foundColor, 8);
+                }
                 startPoint = new cv.Point2(currentX, currentY);
             }
 
@@ -130,10 +150,15 @@ const findIntersect = (searchMat, rect, towns, startFromTopLeft = true) => {
             if (isPixelOutOfBounds(currentX, currentY, searchMat)) {
                 break;
             }
-            // searchMat.drawCircle(new cv.Point2(currentX, currentY), 1, stepColor, 2);
+            if (debugEnabled) {
+                debugShow(searchMat);
+                searchMat.drawCircle(new cv.Point2(currentX, currentY), 1, stepColor, 2);
+            }
             endCircle = isPixelInTowns(currentX, currentY, towns);
             if (endCircle) {
-                // searchMat.drawCircle(new cv.Point2(currentX, currentY), 1, foundColor, 4);
+                if (debugEnabled) {
+                    searchMat.drawCircle(new cv.Point2(currentX, currentY), 1, foundColor, 8);
+                }
                 endPoint = new cv.Point2(currentX, currentY);
             }
 
@@ -154,7 +179,7 @@ const findIntersect = (searchMat, rect, towns, startFromTopLeft = true) => {
 
 }
 
-const probeContour = (searchMat, contour) => {
+const probeContour = (searchMat, contour, debugEnabled = false) => {
     let rect = contour.boundingRect();
     let cross = Math.min(rect.width, rect.height);
     let val;
@@ -197,14 +222,14 @@ const probeContour = (searchMat, contour) => {
     }
 }
 
-const findLinesMetaPerColor = (canvas, minColor, maxColor, towns) => {
+const findLinesMetaPerColor = (canvas, minColor, maxColor, towns, debugEnabled = false) => {
 
     let searchMat = canvas.copy();
 
     // Remove the towns
     for (let i = 0; i < towns.length; i++) {
         const town = towns[i];
-        searchMat.drawCircle(new cv.Point2(town.center.x, town.center.y), town.radius+5, new cv.Vec3(0, 0, 0), -1);
+        searchMat.drawCircle(new cv.Point2(town.center.x, town.center.y), town.radius + 5, new cv.Vec3(0, 0, 0), -1);
     }
 
     // Mask (preserve) the target color
@@ -226,59 +251,96 @@ const findLinesMetaPerColor = (canvas, minColor, maxColor, towns) => {
         .cvtColor(cv.COLOR_BGRA2GRAY)
         .findContours(cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
 
+    if (debugEnabled) {
+        for (let i = 0; i < towns.length; i++) {
+            const town = towns[i];
+            searchMat.drawCircle(new cv.Point2(town.center.x, town.center.y), town.radius, new cv.Vec3(0, 255, 0), 1);
+        }
+        debugShow(searchMat);
+    }
+
     // Infer line from blobs until intersected with a town circle
     let lines = [];
     contours.forEach(contour => {
         let rect = contour.boundingRect();
         let circle = contour.minEnclosingCircle();
         if (circle.radius > 10) {
-            // searchMat.drawRectangle(rect, new cv.Vec3(0,255,255), 1, cv.LINE_AA);
+            if (debugEnabled) {
+                searchMat.drawRectangle(rect, new cv.Vec3(0, 255, 255), 1, cv.LINE_AA);
+                let bla = contour.convexHull(true);
+                // searchMat.drawContours([bla.getPoints()],-1, new cv.Vec3(0,255,255),  0,0, cv.LINE_AA, 2);
+                // searchMat.drawPolylines([bla.getPoints()], true, new cv.Vec3(0, 0, 255), 2, cv.LINE_AA);
+
+                const dst = (p1, p2) => {
+                    return Math.hypot(p2.x - p1.x, p2.y - p1.y);
+                }
+
+                let arr = [];
+                let points = bla.getPoints();
+                for (let i = 1; i < points.length; i++) {
+                    const p1 = points[i-1];
+                    const p2 = points[i];
+                    let distance = dst(p1, p2);
+                    arr.push({d: distance, p1: p1, p2: p2});
+                }
+
+                const compare = (a, b) => {
+                    if (a.d < b.d) return 1;
+                    if (a.d > b.d) return -1;
+                    return 0;
+                }
+
+                arr.sort(compare);
+                const line1 = arr[0];
+                const line2 = arr[1];
+
+                searchMat.drawLine(line1.p1, line1.p2, new cv.Vec3(0, 255, 0), 2, cv.LINE_AA);
+                searchMat.drawLine(line2.p1, line2.p2, new cv.Vec3(0, 255, 0), 2, cv.LINE_AA);
+
+
+            }
+
 
             // Returns undefined if the contour starts outside of bounds
             let startFromTopLeft = probeContour(searchMat, contour);
             if (startFromTopLeft !== undefined) {
-                let foundLine = findIntersect(searchMat, rect, towns, startFromTopLeft);
+                let foundLine = findIntersect(searchMat, rect, towns, startFromTopLeft, debugEnabled);
                 if (foundLine) {
                     lines.push(foundLine);
-                    // searchMat.drawLine(foundLine.startPoint, foundLine.endPoint, new cv.Vec3(0, 255, 0), 2, cv.LINE_AA);
+                    if (debugEnabled) {
+                        searchMat.drawLine(foundLine.startPoint, foundLine.endPoint, new cv.Vec3(0, 255, 0), 2, cv.LINE_AA);
+                    }
                 }
             }
         }
 
-
-
-        // searchMat.drawCircle(new cv.Point2(rect.x + 1, rect.y + 1), 1, new cv.Vec3(0, 0, 255), -1, cv.LINE_AA);
-
-        // searchMat.drawLine(p1, p2, new cv.Vec3(0, 255, 0), 1, cv.LINE_AA);
+        if (debugEnabled) {
+            searchMat.drawCircle(new cv.Point2(rect.x + 1, rect.y + 1), 1, new cv.Vec3(0, 0, 255), -1, cv.LINE_AA);
+            // searchMat.drawLine(p1, p2, new cv.Vec3(0, 255, 0), 1, cv.LINE_AA);
+        }
     });
-
-
-    for (let i = 0; i < towns.length; i++) {
-        const town = towns[i];
-        // searchMat.drawCircle(new cv.Point2(town.center.x, town.center.y), town.radius, new cv.Vec3(0, 255, 0), 1);
-    }
 
 
     return lines;
 }
 
-const findLinesMeta = (canvas, towns) => {
+const findLinesMeta = (canvas, towns, debugEnabled = false) => {
     let lines = [];
 
     // Gray
     let min = new cv.Vec3(0, 0, 50);
     let max = new cv.Vec3(0, 0, 101);
-    lines = lines.concat(findLinesMetaPerColor(canvas, min, max, towns));
+    lines = lines.concat(findLinesMetaPerColor(canvas, min, max, towns, debugEnabled));
 
     // Red
     min = new cv.Vec3(2, 210, 135);
     max = new cv.Vec3(4, 220, 180);
-    lines = lines.concat(findLinesMetaPerColor(canvas, min, max, towns));
+    lines = lines.concat(findLinesMetaPerColor(canvas, min, max, towns, debugEnabled));
 
     // Blue
     min = new cv.Vec3(112, 187, 165);
     max = new cv.Vec3(116, 195, 206);
-    lines = lines.concat(findLinesMetaPerColor(canvas, min, max, towns));
+    lines = lines.concat(findLinesMetaPerColor(canvas, min, max, towns, debugEnabled));
 
     return lines;
 }

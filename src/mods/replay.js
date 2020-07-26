@@ -15,6 +15,8 @@ const {findLinesMeta} = require('./lines');
 
 debug.enable('bot:*');
 
+
+
 const w = settings.game.window.bounds.width;
 const h = settings.game.window.bounds.height;
 
@@ -28,12 +30,7 @@ const positionWindow = () => {
 }
 
 
-const topOffset = 200;
-const rightOffset = 310;
-const leftOffset = 65;
-const bottomOffset = 150;
 
-const searchRegion = new cv.Rect(leftOffset, topOffset, 1280 - rightOffset - leftOffset, 720 - topOffset - bottomOffset);
 
 // const args = process.argv.slice(2);
 const replay = (infinite, directoryPath, callback) => {
@@ -56,7 +53,7 @@ const replay = (infinite, directoryPath, callback) => {
         let path = directoryPath + '/cap-' + cnt + '.png';
         if (fs.existsSync(path)) {
             canvas = cv.imread(path).cvtColor(cv.COLOR_RGB2RGBA);
-            canvas = canvas.getRegion(searchRegion);
+            canvas = canvas.getRegion(settings.bot.window.searchRegion);
             canvas = callback(canvas);
             cv.imshow(title, canvas);
             cv.waitKey(25);
@@ -80,7 +77,7 @@ if (require.main === module) {
 
 
 
-    const resolvedPath = path.resolve(appRootPath.path, './assets/record/case-10');
+    const resolvedPath = path.resolve(appRootPath.path, './assets/record/case-11');
     replay(false, resolvedPath, (canvas) => {
 
         const towns = [];
@@ -93,7 +90,7 @@ if (require.main === module) {
         }
 
         log('before');
-        let lines = findLinesMeta(canvas, towns);
+        let lines = findLinesMeta(canvas, towns, true);
         lines.forEach(line => canvas.drawLine(line.startPoint, line.endPoint, new cv.Vec3(0, 255, 0), 2, cv.LINE_AA));
         log('after');
 
