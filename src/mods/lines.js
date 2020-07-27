@@ -24,7 +24,7 @@ const isPixelOutOfBounds = (x, y, mat) => {
 
 const debugShow = (searchMat) => {
     cv.imshow('searchMat', searchMat);
-    cv.waitKey(80);
+    cv.waitKey();
 }
 
 const findIntersect = (searchMat, rect, towns, startFromTopLeft = true, debugEnabled = false) => {
@@ -271,6 +271,41 @@ const findLinesMetaPerColor = (canvas, minColor, maxColor, towns, debugEnabled =
                 // searchMat.drawContours([bla.getPoints()],-1, new cv.Vec3(0,255,255),  0,0, cv.LINE_AA, 2);
                 // searchMat.drawPolylines([bla.getPoints()], true, new cv.Vec3(0, 0, 255), 2, cv.LINE_AA);
 
+                // let points = bla.getPoints();
+                //
+                // const findBiggest = (a, b, accessor) => {
+                //     if (accessor(a) < accessor(b)) return 1;
+                //     if (accessor(a) > accessor(b)) return -1;
+                //     return 0;
+                // }
+                // const findSmallest = (a, b, accessor) => {
+                //     if (accessor(a) < accessor(b)) return -1;
+                //     if (accessor(a) > accessor(b)) return 1;
+                //     return 0;
+                // }
+                // const findSmallestX = (a, b) => findSmallest(a, b, (p) => p.x);
+                // const findSmallestY = (a, b) => findSmallest(a, b, (p) => p.y);
+                // const findBiggestX = (a, b) => findBiggest(a, b, (p) => p.x);
+                // const findBiggestY = (a, b) => findBiggest(a, b, (p) => p.y);
+                //
+                // let left = points.sort(findSmallestX)[0];
+                // let top = points.sort(findSmallestY)[0];
+                // let right = points.sort(findSmallestX)[0];
+                // let bottom = points.sort(findBiggestY)[0];
+                //
+                // const drawP = (p) => {
+                //     searchMat.drawCircle(p, 4, new cv.Vec3(0, 0, 255), -1, cv.LINE_AA);
+                //     searchMat.drawCircle(p, 2, new cv.Vec3(0, 255, 0), -1, cv.LINE_AA);
+                // }
+                //
+                // drawP(left);
+                // drawP(top);
+                // drawP(right);
+                // drawP(bottom);
+                //
+                // cv.waitKey();
+
+
                 const dst = (p1, p2) => {
                     return Math.hypot(p2.x - p1.x, p2.y - p1.y);
                 }
@@ -296,6 +331,24 @@ const findLinesMetaPerColor = (canvas, minColor, maxColor, towns, debugEnabled =
 
                 searchMat.drawLine(line1.p1, line1.p2, new cv.Vec3(0, 255, 0), 2, cv.LINE_AA);
                 searchMat.drawLine(line2.p1, line2.p2, new cv.Vec3(0, 255, 0), 2, cv.LINE_AA);
+                // Angle of line 1
+                let thetaRadians1 = Math.atan2(line1.p1.y - line1.p2.y, line1.p1.x - line1.p2.x);
+                let thetaRadians2 = Math.atan2(line2.p1.y - line2.p2.y, line2.p1.x - line2.p2.x);
+                log('Rad1', thetaRadians1, 'rad2', thetaRadians2);
+
+                let targetp2 = {};
+                const length = 150;
+                targetp2.x =  Math.round(line1.p1.x + length * Math.cos(thetaRadians1));
+                targetp2.y =  Math.round(line1.p1.y + length * Math.sin(thetaRadians1));
+
+                searchMat.drawLine(line1.p1, new cv.Point2(targetp2.x, targetp2.y), new cv.Vec3(0, 255, 0), 8, cv.LINE_AA);
+
+                targetp2 = {};
+                targetp2.x =  Math.round(line2.p1.x + length * Math.cos(thetaRadians2));
+                targetp2.y =  Math.round(line2.p1.y + length * Math.sin(thetaRadians2));
+
+                searchMat.drawLine(line2.p1, new cv.Point2(targetp2.x, targetp2.y), new cv.Vec3(0, 255, 0), 8, cv.LINE_AA);
+
 
 
             }
