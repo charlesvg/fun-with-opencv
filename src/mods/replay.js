@@ -77,7 +77,7 @@ if (require.main === module) {
 
 
 
-    const resolvedPath = path.resolve(appRootPath.path, './assets/record/case-11');
+    const resolvedPath = path.resolve(appRootPath.path, './assets/record/case-9');
     replay(false, resolvedPath, (canvas) => {
 
         const towns = [];
@@ -90,7 +90,7 @@ if (require.main === module) {
         }
 
         log('before');
-        let lines = findLinesMeta(canvas, towns, true);
+        let lines = findLinesMeta(canvas, towns, false);
         lines.forEach(line => canvas.drawLine(line.startPoint, line.endPoint, new cv.Vec3(0, 255, 0), 2, cv.LINE_AA));
         log('after');
 
