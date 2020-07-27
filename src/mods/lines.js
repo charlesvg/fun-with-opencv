@@ -179,6 +179,7 @@ const findIntersect = (searchMat, rect, towns, startFromTopLeft = true, debugEna
 
 }
 
+
 const probeContour = (searchMat, contour, debugEnabled = false) => {
     let rect = contour.boundingRect();
     let cross = Math.min(rect.width, rect.height);
@@ -268,42 +269,6 @@ const findLinesMetaPerColor = (canvas, minColor, maxColor, towns, debugEnabled =
             if (debugEnabled) {
                 searchMat.drawRectangle(rect, new cv.Vec3(0, 255, 255), 1, cv.LINE_AA);
                 let bla = contour.convexHull(true);
-                // searchMat.drawContours([bla.getPoints()],-1, new cv.Vec3(0,255,255),  0,0, cv.LINE_AA, 2);
-                // searchMat.drawPolylines([bla.getPoints()], true, new cv.Vec3(0, 0, 255), 2, cv.LINE_AA);
-
-                // let points = bla.getPoints();
-                //
-                // const findBiggest = (a, b, accessor) => {
-                //     if (accessor(a) < accessor(b)) return 1;
-                //     if (accessor(a) > accessor(b)) return -1;
-                //     return 0;
-                // }
-                // const findSmallest = (a, b, accessor) => {
-                //     if (accessor(a) < accessor(b)) return -1;
-                //     if (accessor(a) > accessor(b)) return 1;
-                //     return 0;
-                // }
-                // const findSmallestX = (a, b) => findSmallest(a, b, (p) => p.x);
-                // const findSmallestY = (a, b) => findSmallest(a, b, (p) => p.y);
-                // const findBiggestX = (a, b) => findBiggest(a, b, (p) => p.x);
-                // const findBiggestY = (a, b) => findBiggest(a, b, (p) => p.y);
-                //
-                // let left = points.sort(findSmallestX)[0];
-                // let top = points.sort(findSmallestY)[0];
-                // let right = points.sort(findSmallestX)[0];
-                // let bottom = points.sort(findBiggestY)[0];
-                //
-                // const drawP = (p) => {
-                //     searchMat.drawCircle(p, 4, new cv.Vec3(0, 0, 255), -1, cv.LINE_AA);
-                //     searchMat.drawCircle(p, 2, new cv.Vec3(0, 255, 0), -1, cv.LINE_AA);
-                // }
-                //
-                // drawP(left);
-                // drawP(top);
-                // drawP(right);
-                // drawP(bottom);
-                //
-                // cv.waitKey();
 
 
                 const dst = (p1, p2) => {
@@ -313,7 +278,7 @@ const findLinesMetaPerColor = (canvas, minColor, maxColor, towns, debugEnabled =
                 let arr = [];
                 let points = bla.getPoints();
                 for (let i = 1; i < points.length; i++) {
-                    const p1 = points[i-1];
+                    const p1 = points[i - 1];
                     const p2 = points[i];
                     let distance = dst(p1, p2);
                     arr.push({d: distance, p1: p1, p2: p2});
@@ -326,45 +291,79 @@ const findLinesMetaPerColor = (canvas, minColor, maxColor, towns, debugEnabled =
                 }
 
                 arr.sort(compare);
-                const line1 = arr[0];
-                const line2 = arr[1];
+                const longestLine = arr[0];
 
-                searchMat.drawLine(line1.p1, line1.p2, new cv.Vec3(0, 255, 0), 2, cv.LINE_AA);
-                searchMat.drawLine(line2.p1, line2.p2, new cv.Vec3(0, 255, 0), 2, cv.LINE_AA);
-                // Angle of line 1
-                let thetaRadians1 = Math.atan2(line1.p1.y - line1.p2.y, line1.p1.x - line1.p2.x);
-                let thetaRadians2 = Math.atan2(line2.p1.y - line2.p2.y, line2.p1.x - line2.p2.x);
-                log('Rad1', thetaRadians1, 'rad2', thetaRadians2);
+                searchMat.drawLine(longestLine.p1, longestLine.p2, new cv.Vec3(0, 255, 0), 2, cv.LINE_AA);
 
-                let targetp2 = {};
-                const length = 150;
-                targetp2.x =  Math.round(line1.p1.x + length * Math.cos(thetaRadians1));
-                targetp2.y =  Math.round(line1.p1.y + length * Math.sin(thetaRadians1));
+                // Angle of longest line
+                let longestLineAngleInRadians = Math.atan2(longestLine.p1.y - longestLine.p2.y, longestLine.p1.x - longestLine.p2.x);
 
-                searchMat.drawLine(line1.p1, new cv.Point2(targetp2.x, targetp2.y), new cv.Vec3(0, 255, 0), 8, cv.LINE_AA);
-
-                targetp2 = {};
-                targetp2.x =  Math.round(line2.p1.x + length * Math.cos(thetaRadians2));
-                targetp2.y =  Math.round(line2.p1.y + length * Math.sin(thetaRadians2));
-
-                searchMat.drawLine(line2.p1, new cv.Point2(targetp2.x, targetp2.y), new cv.Vec3(0, 255, 0), 8, cv.LINE_AA);
+                // Calculate a new point, starting from the circle center using the calculated angle
+                // const length = 20;
+                // let newX = Math.round(circle.center.x + length * Math.cos(longestLineAngleInRadians));
+                // let newY = Math.round(circle.center.y + length * Math.sin(longestLineAngleInRadians));
 
 
+                const findIntersect2 = (searchMat, point, angle, towns, flipAngle = false, debugEnabled = false) => {
+                    const step = 20;
 
-            }
-
-
-            // Returns undefined if the contour starts outside of bounds
-            let startFromTopLeft = probeContour(searchMat, contour);
-            if (startFromTopLeft !== undefined) {
-                let foundLine = findIntersect(searchMat, rect, towns, startFromTopLeft, debugEnabled);
-                if (foundLine) {
-                    lines.push(foundLine);
-                    if (debugEnabled) {
-                        searchMat.drawLine(foundLine.startPoint, foundLine.endPoint, new cv.Vec3(0, 255, 0), 2, cv.LINE_AA);
+                    if (flipAngle) {
+                        angle += Math.PI;
                     }
+
+                    let foundCircle = undefined;
+                    let circlePoint = undefined;
+
+                    let length = 0;
+                    let stepColor = new cv.Vec3(0, 0, 255);
+                    let foundColor = new cv.Vec3(0, 0, 255);
+
+                    do {
+                        length += step;
+                        let newX = Math.round(point.x + length * Math.cos(angle));
+                        let newY = Math.round(point.y + length * Math.sin(angle));
+
+                        if (isPixelOutOfBounds(newX, newY, searchMat)) {
+                            break;
+                        }
+                        if (debugEnabled) {
+                            searchMat.drawCircle(new cv.Point2(newX, newY), 1, stepColor, 2);
+                            debugShow(searchMat);
+                        }
+                        foundCircle = isPixelInTowns(newX, newY, towns);
+
+                        if (foundCircle) {
+                            if (debugEnabled) {
+                                searchMat.drawCircle(new cv.Point2(newX, newY), 1, foundColor, 8);
+                            }
+                            circlePoint = new cv.Point2(newX, newY);
+                        }
+
+                    } while (!foundCircle);
+
+                    return foundCircle ? {circle: foundCircle, point: circlePoint} : undefined;
+
+                }
+
+                let start = findIntersect2(searchMat, circle.center, longestLineAngleInRadians, towns, false, true);
+                let end = findIntersect2(searchMat, circle.center, longestLineAngleInRadians, towns, true, true);
+                if (start && end) {
+                    searchMat.drawLine(start.point, end.point, new cv.Vec3(0, 255, 0), 2, cv.LINE_AA);
                 }
             }
+
+
+            // // Returns undefined if the contour starts outside of bounds
+            // let startFromTopLeft = probeContour(searchMat, contour);
+            // if (startFromTopLeft !== undefined) {
+            //     let foundLine = findIntersect(searchMat, rect, towns, startFromTopLeft, debugEnabled);
+            //     if (foundLine) {
+            //         lines.push(foundLine);
+            //         if (debugEnabled) {
+            //             searchMat.drawLine(foundLine.startPoint, foundLine.endPoint, new cv.Vec3(0, 255, 0), 2, cv.LINE_AA);
+            //         }
+            //     }
+            // }
         }
 
         if (debugEnabled) {
