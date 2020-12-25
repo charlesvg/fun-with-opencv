@@ -180,6 +180,19 @@ const findLinesMeta = (canvas, towns, debugEnabled = false) => {
     max = new cv.Vec3(116, 195, 206);
     lines = lines.concat(findLinesMetaPerColor(canvas, min, max, towns, debugEnabled));
 
+    towns.forEach(town => {
+        lines.forEach(line => {
+            if (line.startCircle === town) {
+                if (town.lines) {
+                    town.lines.push[line];
+                } else {
+
+                }
+            }
+        });
+    });
+
+
     return lines;
 }
 
